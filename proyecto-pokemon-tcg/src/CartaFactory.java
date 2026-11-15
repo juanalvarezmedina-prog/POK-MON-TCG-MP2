@@ -48,6 +48,41 @@ public class CartaFactory {
                 a.agregarAtaque(new Ataque("Viento Helado", TipoEnergia.Agua, (byte) 1, (short) 30));
                 a.agregarAtaque(new Ataque("Ventisca", TipoEnergia.Agua, (byte) 3, (short) 100));
                 return a;
+            case "raichu":
+                PokemonEvolucion r = new PokemonEvolucion("Raichu", TipoEnergia.Electrico, 100, 1,
+                        Etapa.FASE1, "Pikachu");
+                r.agregarAtaque(new Ataque("Trueno", TipoEnergia.Electrico, (byte) 2, (short) 60));
+                return r;
+            case "charmeleon":
+                PokemonEvolucion cm = new PokemonEvolucion("Charmeleon", TipoEnergia.Fuego, 90, 2,
+                        Etapa.FASE1, "Charmander");
+                cm.agregarAtaque(new Ataque("Garra Ígnea", TipoEnergia.Fuego, (byte) 2, (short) 50));
+                return cm;
+            case "charizard":
+                PokemonEvolucion cz = new PokemonEvolucion("Charizard", TipoEnergia.Fuego, 150, 2,
+                        Etapa.FASE2, "Charmeleon");
+                cz.agregarAtaque(new Ataque("Giro Fuego", TipoEnergia.Fuego, (byte) 4, (short) 120));
+                return cz;
+            case "wartortle":
+                PokemonEvolucion w = new PokemonEvolucion("Wartortle", TipoEnergia.Agua, 80, 1,
+                        Etapa.FASE1, "Squirtle");
+                w.agregarAtaque(new Ataque("Salpicadura", TipoEnergia.Agua, (byte) 2, (short) 40));
+                return w;
+            case "blastoise":
+                PokemonEvolucion b = new PokemonEvolucion("Blastoise", TipoEnergia.Agua, 150, 3,
+                        Etapa.FASE2, "Wartortle");
+                b.agregarAtaque(new Ataque("Hidrobomba", TipoEnergia.Agua, (byte) 3, (short) 100));
+                return b;
+            case "wigglytuff":
+                PokemonEvolucion wf = new PokemonEvolucion("Wigglytuff", TipoEnergia.Incoloro, 110, 2,
+                        Etapa.FASE1, "Jigglypuff");
+                wf.agregarAtaque(new Ataque("Bofetón", TipoEnergia.Incoloro, (byte) 2, (short) 50));
+                return wf;
+            case "gyarados":
+                PokemonEvolucion g = new PokemonEvolucion("Gyarados", TipoEnergia.Agua, 150, 4,
+                        Etapa.FASE1, "Magikarp");
+                g.agregarAtaque(new Ataque("Hiperrayo", TipoEnergia.Agua, (byte) 4, (short) 100));
+                return g;
             case "investigacion del profesor":
                 return new InvestigacionProfesor();
             case "pocion":
@@ -75,6 +110,13 @@ public class CartaFactory {
                 "Zapdos EX",
                 "Moltres EX",
                 "Articuno EX",
+                "Raichu",
+                "Charmeleon",
+                "Charizard",
+                "Wartortle",
+                "Blastoise",
+                "Wigglytuff",
+                "Gyarados",
                 "Investigacion del Profesor",
                 "Pocion",
                 "Pokeball",
@@ -120,4 +162,3 @@ public static Mazo mazoElectrico() {
         "Turbo Velocidad", "Turbo Velocidad", "Misty", "Misty"));
 }
 }
-
