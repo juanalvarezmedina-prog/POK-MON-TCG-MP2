@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class CartaFactory {
@@ -48,16 +49,157 @@ public class CartaFactory {
                 a.agregarAtaque(new Ataque("Viento Helado", TipoEnergia.Agua, (byte) 1, (short) 30));
                 a.agregarAtaque(new Ataque("Ventisca", TipoEnergia.Agua, (byte) 3, (short) 100));
                 return a;
+            case "raichu":
+                PokemonEvolucion r = new PokemonEvolucion("Raichu", TipoEnergia.Electrico, 100, 1,
+                        Etapa.FASE1, "Pikachu");
+                r.agregarAtaque(new Ataque("Trueno", TipoEnergia.Electrico, (byte) 2, (short) 60));
+                return r;
+            case "charmeleon":
+                PokemonEvolucion cm = new PokemonEvolucion("Charmeleon", TipoEnergia.Fuego, 90, 2,
+                        Etapa.FASE1, "Charmander");
+                cm.agregarAtaque(new Ataque("Garra Ígnea", TipoEnergia.Fuego, (byte) 2, (short) 50));
+                return cm;
+            case "charizard":
+                PokemonEvolucion cz = new PokemonEvolucion("Charizard", TipoEnergia.Fuego, 150, 2,
+                        Etapa.FASE2, "Charmeleon");
+                cz.agregarAtaque(new Ataque("Giro Fuego", TipoEnergia.Fuego, (byte) 4, (short) 120));
+                return cz;
+            case "wartortle":
+                PokemonEvolucion w = new PokemonEvolucion("Wartortle", TipoEnergia.Agua, 80, 1,
+                        Etapa.FASE1, "Squirtle");
+                w.agregarAtaque(new Ataque("Salpicadura", TipoEnergia.Agua, (byte) 2, (short) 40));
+                return w;
+            case "blastoise":
+                PokemonEvolucion b = new PokemonEvolucion("Blastoise", TipoEnergia.Agua, 150, 3,
+                        Etapa.FASE2, "Wartortle");
+                b.agregarAtaque(new Ataque("Hidrobomba", TipoEnergia.Agua, (byte) 3, (short) 100));
+                return b;
+            case "wigglytuff":
+                PokemonEvolucion wf = new PokemonEvolucion("Wigglytuff", TipoEnergia.Incoloro, 110, 2,
+                        Etapa.FASE1, "Jigglypuff");
+                wf.agregarAtaque(new Ataque("Bofetón", TipoEnergia.Incoloro, (byte) 2, (short) 50));
+                return wf;
+            case "gyarados":
+                PokemonEvolucion g = new PokemonEvolucion("Gyarados", TipoEnergia.Agua, 150, 4,
+                        Etapa.FASE1, "Magikarp");
+                g.agregarAtaque(new Ataque("Hiperrayo", TipoEnergia.Agua, (byte) 4, (short) 100));
+                return g;
+///////////////////////////////////////////////////////////////////////////////////
+
             case "investigacion del profesor":
-                return new InvestigacionProfesor();
+                return new Entrenador(
+                    "Investigación del Profesor",
+                    true,
+                    "Descarta tu mano actual y roba 2 cartas de tu mazo.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            jugador.descartarMano();
+                            jugador.robarCarta();
+                            jugador.robarCarta();
+                            return true;
+                        }
+                    }
+                );
+
             case "pocion":
-                return new Pocion();
-            case "pokeball":
-                return new PokeBall();
+                return new Entrenador(
+                    "Poción",
+                    false,
+                    "Cura 20 PS al Pokémon Activo de tu lado del campo.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            PokemonEnJuego activo = jugador.getCampo().getActivo();
+                            if (activo == null) {
+                                return false;
+                            }
+                            activo.curar(20);
+                            return true;
+                        }
+                    }
+                );
+
             case "turbo velocidad":
-                return new TurboVelocidad();
+                return new Entrenador(
+                    "Turbo Velocidad",
+                    false,
+                    "Reduce en 1 el costo de retirada del Pokémon Activo este turno.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            PokemonEnJuego activo = jugador.getCampo().getActivo();
+                            if (activo == null) {
+                                return false;
+                            }
+                            activo.aplicarTurbo();
+                            return true;
+                        }
+                    }
+                );
+
+            case "pokeball":
+                return new Entrenador(
+                    "Poké Ball",
+                    false,
+                    "Busca un Pokémon Básico en tu mazo y añádelo a tu mano.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            Pokemon basico = jugador.getMazo().buscarBasico();
+                            if (basico == null) {
+                                return false;
+                            }
+                            jugador.agregarAMano(basico);
+                            jugador.getMazo().barajar();
+                            return true;
+                        }
+                    }
+                );
+
             case "misty":
-                return new Misty();
+                return new Entrenador(
+                    "Misty",
+                    true,
+                    "Adjunta 3 Energías de Agua a un Pokémon de Agua en tu campo.",
+                    new Activable() {
+                        @Override
+                        public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
+                            List<PokemonEnJuego> objetivos = new ArrayList<>();
+                            Campo campo = jugador.getCampo();
+                            if (campo.getActivo() != null && campo.getActivo().getCarta().getTipo() == TipoEnergia.Agua) {
+                                objetivos.add(campo.getActivo());
+                            }
+                            for (PokemonEnJuego p : campo.getBanco()) {
+                                if (p.getCarta().getTipo() == TipoEnergia.Agua) {
+                                    objetivos.add(p);
+                                }
+                            }
+                            return objetivos;
+                        }
+
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            List<PokemonEnJuego> objetivos = objetivosPosibles(jugador);
+                            if (objetivos.isEmpty()) {
+                                return false;
+                            }
+                            return activar(jugador, rival, objetivos.get(0));
+                        }
+
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival, PokemonEnJuego objetivo) {
+                            if (objetivo == null || !objetivosPosibles(jugador).contains(objetivo)) {
+                                return false;
+                            }
+                            for (int i = 0; i < 3; i++) {
+                                objetivo.adjuntarEnergia(TipoEnergia.Agua);
+                            }
+                            return true;
+                        }
+                    }
+                );
+            
             default:
                 System.out.println("Carta no reconocida: " + nombre);
                 return null;
@@ -75,6 +217,13 @@ public class CartaFactory {
                 "Zapdos EX",
                 "Moltres EX",
                 "Articuno EX",
+                "Raichu",
+                "Charmeleon",
+                "Charizard",
+                "Wartortle",
+                "Blastoise",
+                "Wigglytuff",
+                "Gyarados",
                 "Investigacion del Profesor",
                 "Pocion",
                 "Pokeball",
@@ -120,4 +269,3 @@ public static Mazo mazoElectrico() {
         "Turbo Velocidad", "Turbo Velocidad", "Misty", "Misty"));
 }
 }
-

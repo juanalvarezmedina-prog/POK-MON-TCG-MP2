@@ -10,8 +10,8 @@ public class Jugador {
     private List<Carta> mano;
     private Campo campo;
     private int puntosPremio;
-    private TipoEnergia tipoZona;          
-    private TipoEnergia energiaDisponible; 
+    private TipoEnergia tipoZona;
+    private TipoEnergia energiaDisponible;
     private boolean yaUsoSoporte;
     private boolean yaAtaco;
 
@@ -32,12 +32,16 @@ public class Jugador {
     }
 
     public List<Carta> getMano() {
-    return Collections.unmodifiableList(mano);
-}
+        return Collections.unmodifiableList(mano);
+    }
 
-public void descartarMano() {
-    mano.clear();
-}
+    public void agregarAMano(Carta carta) {
+        mano.add(carta);
+    }
+
+    public void descartarMano() {
+        mano.clear();
+    }
 
     public Campo getCampo() {
         return campo;
@@ -115,13 +119,41 @@ public void descartarMano() {
         return seJugo;
     }
 
-    public boolean colocarEnBanco(Pokemon c) {
-        if (!mano.contains(c) || !campo.hayEspacioEnBanco()) {
+    public boolean colocarEnBanco(Pokemon c, int turnoActual) {
+        if (!mano.contains(c) || !c.esBasico() || !campo.hayEspacioEnBanco()) {
             return false;
         }
-        campo.colocarEnBanco(new PokemonEnJuego(c));
+        campo.colocarEnBanco(new PokemonEnJuego(c, turnoActual));
         mano.remove(c);
         return true;
+    }
+
+    // Devuelve null si la evolución se hizo; si no, devuelve el motivo por el que falló.
+    public String evolucionar(PokemonEvolucion carta, PokemonEnJuego objetivo, int turnoActual) {
+        if (turnoActual == 1) {
+            return "No puedes evolucionar en el turno 1.";
+        }
+        if (!mano.contains(carta)) {
+            return "Esa carta no está en tu mano.";
+        }
+        boolean esPropio = objetivo != null
+                && (objetivo == campo.getActivo() || campo.getBanco().contains(objetivo));
+        if (!esPropio) {
+            return "Debes elegir uno de tus Pokémon en juego.";
+        }
+        if (!carta.getEvolucionaDe().equals(objetivo.getCarta().getNombre())) {
+            return carta.getNombre() + " solo evoluciona de " + carta.getEvolucionaDe() + ".";
+        }
+        if (objetivo.getTurnoEntrada() == turnoActual) {
+            return "No puedes evolucionar un Pokémon que entró en juego este turno.";
+        }
+        if (objetivo.getUltimoTurnoEvolucion() == turnoActual) {
+            return "Ese Pokémon ya evolucionó este turno.";
+        }
+
+        objetivo.evolucionar(carta, turnoActual);
+        mano.remove(carta);
+        return null;
     }
 
     public boolean retirarActivo(int indiceBanco) {
@@ -172,7 +204,7 @@ public void descartarMano() {
 
     public boolean tieneBasicoEnMano() {
         for (Carta c : mano) {
-            if (c instanceof Pokemon) {
+            if (c instanceof Pokemon && ((Pokemon) c).esBasico()) {
                 return true;
             }
         }
@@ -188,14 +220,16 @@ public void descartarMano() {
             robarCarta();
         }
     }
-    public boolean colocarActivoDesdeMano(Pokemon c) {
-    if (!mano.contains(c) || campo.getActivo() != null) {
-        return false;
+
+    public boolean colocarActivoDesdeMano(Pokemon c, int turnoActual) {
+        if (!mano.contains(c) || !c.esBasico() || campo.getActivo() != null) {
+            return false;
+        }
+        campo.setActivo(new PokemonEnJuego(c, turnoActual));
+        mano.remove(c);
+        return true;
     }
-    campo.setActivo(new PokemonEnJuego(c));
-    mano.remove(c);
-    return true;
-    }
+
     public boolean necesitaReemplazo() {
         return campo.getActivo() == null && campo.tienePokemonEnJuego();
     }
@@ -210,20 +244,4 @@ public void descartarMano() {
         campo.promoverDelBanco(indiceBanco);
         return true;
     }
-    public boolean mazoEsValido(){
-        return mazo.esValido();
-    }
-    public void barajarMazo(){
-        mazo.barajar();
-    }
-
-    public boolean buscarBasicoEnMazo() {
-        Pokemon basico = mazo.buscarBasico();
-        if (basico == null) {
-            return false;
-        }
-        mano.add(basico);
-    return true;
-    }
 }
-

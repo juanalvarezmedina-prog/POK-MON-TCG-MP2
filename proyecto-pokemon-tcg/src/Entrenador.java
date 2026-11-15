@@ -1,26 +1,37 @@
 import java.util.List;
 
-public abstract class Entrenador extends Carta implements Activable {
-    private boolean soporte;
+public class Entrenador extends Carta implements Activable {
+    private final boolean soporte;
+    private final String descripcion;
+    private final Activable estrategia;
 
-    public Entrenador(String nombre, boolean soporte) {
+    public Entrenador(String nombre, boolean soporte, String descripcion, Activable estrategia) {
         super(nombre);
         this.soporte = soporte;
+        this.descripcion = descripcion;
+        this.estrategia = estrategia;
     }
 
     public boolean esSoporte() {
         return soporte;
     }
 
-    // activar(jugador, rival) lo heredan de Activable y cada carta lo implementa
-
-    // esto es para que mysty elija que pokeom darle la energia
-    public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
-        return List.of();
+    @Override
+    public boolean activar(Jugador jugador, Jugador rival) {
+        return estrategia != null && estrategia.activar(jugador, rival);
     }
 
-    // y este es para cuando no se elije a quiern 
+    public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
+        return estrategia != null ? estrategia.objetivosPosibles(jugador) : List.of();
+    }
+
     public boolean activar(Jugador jugador, Jugador rival, PokemonEnJuego objetivo) {
-        return activar(jugador, rival);
+        return estrategia != null && estrategia.activar(jugador, rival, objetivo);
+    }
+
+    @Override
+    public void mostrarInformacion() {
+        System.out.println("Nombre: " + getNombre());
+        System.out.println("Efecto: " + descripcion);
     }
 }
