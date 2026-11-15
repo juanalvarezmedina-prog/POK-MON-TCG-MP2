@@ -35,10 +35,6 @@ public class Jugador {
     return Collections.unmodifiableList(mano);
 }
 
-public void agregarAMano(Carta carta) {
-    mano.add(carta);
-}
-
 public void descartarMano() {
     mano.clear();
 }
@@ -201,18 +197,33 @@ public void descartarMano() {
     return true;
     }
     public boolean necesitaReemplazo() {
-    return campo.getActivo() == null && campo.tienePokemonEnJuego();
-}
+        return campo.getActivo() == null && campo.tienePokemonEnJuego();
+    }
 
-public boolean reemplazarActivo(int indiceBanco) {
-    if (campo.getActivo() != null) {
-        return false;
+    public boolean reemplazarActivo(int indiceBanco) {
+        if (campo.getActivo() != null) {
+            return false;
+        }
+        if (indiceBanco < 0 || indiceBanco >= campo.getBanco().size()) {
+            return false;
+        }
+        campo.promoverDelBanco(indiceBanco);
+        return true;
     }
-    if (indiceBanco < 0 || indiceBanco >= campo.getBanco().size()) {
-        return false;
+    public boolean mazoEsValido(){
+        return mazo.esValido();
     }
-    campo.promoverDelBanco(indiceBanco);
+    public void barajarMazo(){
+        mazo.barajar();
+    }
+
+    public boolean buscarBasicoEnMazo() {
+        Pokemon basico = mazo.buscarBasico();
+        if (basico == null) {
+            return false;
+        }
+        mano.add(basico);
     return true;
-}
+    }
 }
 
