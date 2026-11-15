@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Campo {
@@ -19,11 +18,15 @@ public class Campo {
 
     
     public List<PokemonEnJuego> getBanco() {
-        return Collections.unmodifiableList(banco);
+        return new ArrayList<>(banco); 
     }
 
-    public void setActivo(PokemonEnJuego p) {
-        this.activo = p;
+    public boolean setActivo(PokemonEnJuego p) {
+        if (p == null || activo != null|| banco.contains(p)) {
+            return false;
+        }
+        activo = p;
+        return true;
     }
 
     public boolean hayEspacioEnBanco() {
@@ -39,17 +42,19 @@ public class Campo {
     }
 
     // el del banco pasa a ser el nuevo activo
-    public void promoverDelBanco(int indice) {
-        validarIndice(indice);
+    public void promoverDelBanco(int indice) {  
         this.activo = banco.remove(indice);
     }
 
     // Retirada
-    public void intercambiarActivo(int indice) {
-        validarIndice(indice);
+    public boolean intercambiarActivo(int indice) {
+        if (activo == null || !indiceValido(indice)) {
+            return false;
+        }
         PokemonEnJuego nuevoActivo = banco.get(indice);
         banco.set(indice, activo);
         activo = nuevoActivo;
+        return true;
     }
 
     public void eliminarActivo() {
@@ -60,9 +65,7 @@ public class Campo {
         return activo != null || !banco.isEmpty();
     }
 
-    private void validarIndice(int indice) {
-        if (indice < 0 || indice >= banco.size()) {
-            throw new IllegalArgumentException("Índice de banco inválido: " + indice);
-        }
+    private boolean indiceValido(int indice) {
+        return indice >= 0 && indice < banco.size();
     }
 }
