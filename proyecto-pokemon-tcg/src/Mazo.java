@@ -37,7 +37,7 @@ public class Mazo {
 
     public Pokemon buscarBasico() {
         for (int i = 0; i < mazo.size(); i++) {
-            if (mazo.get(i) instanceof Pokemon) {
+            if (mazo.get(i) instanceof Pokemon && ((Pokemon) mazo.get(i)).esBasico()) {
                 return (Pokemon) mazo.remove(i);
             }
         }
@@ -55,7 +55,7 @@ public class Mazo {
             return false;
         }
 
-        int pokemons = 0;
+        int basicos = 0;
         for (int i = 0; i < mazo.size(); i++) {
             int copias = 0;
             for (int j = 0; j < mazo.size(); j++) {
@@ -66,11 +66,11 @@ public class Mazo {
             if (copias > 2) {
                 return false;
             }
-            if (mazo.get(i) instanceof Pokemon) {
-            pokemons++;
+            if (mazo.get(i) instanceof Pokemon && ((Pokemon) mazo.get(i)).esBasico()) {
+                basicos++;
             }
         }
-        return pokemons >= 6;
+        return basicos >= 6;
     }
 
     public boolean estaVacio() {
