@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class CartaFactory {
@@ -83,16 +84,122 @@ public class CartaFactory {
                         Etapa.FASE1, "Magikarp");
                 g.agregarAtaque(new Ataque("Hiperrayo", TipoEnergia.Agua, (byte) 4, (short) 100));
                 return g;
+///////////////////////////////////////////////////////////////////////////////////
+
             case "investigacion del profesor":
-                return new InvestigacionProfesor();
+                return new Entrenador(
+                    "Investigación del Profesor",
+                    true,
+                    "Descarta tu mano actual y roba 2 cartas de tu mazo.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            jugador.descartarMano();
+                            jugador.robarCarta();
+                            jugador.robarCarta();
+                            return true;
+                        }
+                    }
+                );
+
             case "pocion":
-                return new Pocion();
-            case "pokeball":
-                return new PokeBall();
+                return new Entrenador(
+                    "Poción",
+                    false,
+                    "Cura 20 PS al Pokémon Activo de tu lado del campo.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            PokemonEnJuego activo = jugador.getCampo().getActivo();
+                            if (activo == null) {
+                                return false;
+                            }
+                            activo.curar(20);
+                            return true;
+                        }
+                    }
+                );
+
             case "turbo velocidad":
-                return new TurboVelocidad();
+                return new Entrenador(
+                    "Turbo Velocidad",
+                    false,
+                    "Reduce en 1 el costo de retirada del Pokémon Activo este turno.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            PokemonEnJuego activo = jugador.getCampo().getActivo();
+                            if (activo == null) {
+                                return false;
+                            }
+                            activo.aplicarTurbo();
+                            return true;
+                        }
+                    }
+                );
+
+            case "pokeball":
+                return new Entrenador(
+                    "Poké Ball",
+                    false,
+                    "Busca un Pokémon Básico en tu mazo y añádelo a tu mano.",
+                    new Activable() {
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            Pokemon basico = jugador.getMazo().buscarBasico();
+                            if (basico == null) {
+                                return false;
+                            }
+                            jugador.agregarAMano(basico);
+                            jugador.getMazo().barajar();
+                            return true;
+                        }
+                    }
+                );
+
             case "misty":
-                return new Misty();
+                return new Entrenador(
+                    "Misty",
+                    true,
+                    "Adjunta 3 Energías de Agua a un Pokémon de Agua en tu campo.",
+                    new Activable() {
+                        @Override
+                        public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
+                            List<PokemonEnJuego> objetivos = new ArrayList<>();
+                            Campo campo = jugador.getCampo();
+                            if (campo.getActivo() != null && campo.getActivo().getCarta().getTipo() == TipoEnergia.Agua) {
+                                objetivos.add(campo.getActivo());
+                            }
+                            for (PokemonEnJuego p : campo.getBanco()) {
+                                if (p.getCarta().getTipo() == TipoEnergia.Agua) {
+                                    objetivos.add(p);
+                                }
+                            }
+                            return objetivos;
+                        }
+
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival) {
+                            List<PokemonEnJuego> objetivos = objetivosPosibles(jugador);
+                            if (objetivos.isEmpty()) {
+                                return false;
+                            }
+                            return activar(jugador, rival, objetivos.get(0));
+                        }
+
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival, PokemonEnJuego objetivo) {
+                            if (objetivo == null || !objetivosPosibles(jugador).contains(objetivo)) {
+                                return false;
+                            }
+                            for (int i = 0; i < 3; i++) {
+                                objetivo.adjuntarEnergia(TipoEnergia.Agua);
+                            }
+                            return true;
+                        }
+                    }
+                );
+            
             default:
                 System.out.println("Carta no reconocida: " + nombre);
                 return null;
