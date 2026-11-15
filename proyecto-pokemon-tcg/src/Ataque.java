@@ -5,7 +5,6 @@ public class Ataque {
     private final TipoEnergia tipoEnergia;
     private final byte costo;
     private final short dano;
-// FINAL ES PARA QUE EN NINGUN LADO EL ATRIBUTO PUEDA SER MODIFICADO, SOLO SE PUEDE MODIFICAR EN EL CONSTRUCTOR
 
     public Ataque(String nombre, TipoEnergia tipoEnergia, byte costo, short dano) {
         this.nombre = nombre;
