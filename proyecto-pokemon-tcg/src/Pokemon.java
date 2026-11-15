@@ -38,6 +38,10 @@ public abstract class Pokemon extends Carta {
         return costoRetirada;
     }
 
+    public boolean esBasico() {
+        return true;
+    }
+
     public abstract int getPuntosPremio();
 
     @Override 
