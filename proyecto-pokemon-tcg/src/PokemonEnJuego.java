@@ -7,12 +7,16 @@ public class PokemonEnJuego {
     private int psActuales;
     private List<TipoEnergia> energias;
     private int reduccionRetirada;
+    private int turnoEntrada;            // NUEVO: turno en que entró al campo
+    private int ultimoTurnoEvolucion;    // NUEVO: 0 = nunca ha evolucionado
 
-    public PokemonEnJuego(Pokemon carta) {
+    public PokemonEnJuego(Pokemon carta, int turnoActual) {
         this.carta = carta;
         this.psActuales = carta.getPsMaximos();
         this.energias = new ArrayList<>();
         this.reduccionRetirada = 0;
+        this.turnoEntrada = turnoActual;
+        this.ultimoTurnoEvolucion = 0;
     }
 
     public Pokemon getCarta() {
@@ -26,6 +30,16 @@ public class PokemonEnJuego {
     // para agregar o quitar energías hay que usar los métodos de abajo
     public List<TipoEnergia> getEnergias() {
         return Collections.unmodifiableList(energias);
+    }
+
+    // NUEVO
+    public int getTurnoEntrada() {
+        return turnoEntrada;
+    }
+
+    // NUEVO
+    public int getUltimoTurnoEvolucion() {
+        return ultimoTurnoEvolucion;
     }
 
     public void recibirDano(int cantidad) {
@@ -48,12 +62,12 @@ public class PokemonEnJuego {
             energias.remove(0);
         }
     }
-
+    
     public boolean estaDerrotado() {
         return psActuales <= 0;
     }
 
-    // Costo de la carta menos lo que reduzca Turbo Velocida
+    // Costo de la carta menos lo que reduzca Turbo Velocidad
     public int getCostoRetiradaActual() {
         return Math.max(0, carta.getCostoRetirada() - reduccionRetirada);
     }
@@ -65,5 +79,13 @@ public class PokemonEnJuego {
     // porque Turbo Velocidad solo dura ese turno
     public void reiniciarEfectosTurno() {
         reduccionRetirada = 0;
+    }
+
+    // NUEVO: la evolución conserva el daño recibido y las energías
+    public void evolucionar(PokemonEvolucion cartaNueva, int turnoActual) {
+        int danoAcumulado = carta.getPsMaximos() - psActuales;
+        carta = cartaNueva;
+        psActuales = cartaNueva.getPsMaximos() - danoAcumulado;
+        ultimoTurnoEvolucion = turnoActual;
     }
 }

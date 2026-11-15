@@ -119,11 +119,11 @@ public void descartarMano() {
         return seJugo;
     }
 
-    public boolean colocarEnBanco(Pokemon c) {
+    public boolean colocarEnBanco(Pokemon c, int turnoActual) {
         if (!mano.contains(c) || !campo.hayEspacioEnBanco()) {
             return false;
         }
-        campo.colocarEnBanco(new PokemonEnJuego(c));
+        campo.colocarEnBanco(new PokemonEnJuego(c, turnoActual));
         mano.remove(c);
         return true;
     }
@@ -192,11 +192,11 @@ public void descartarMano() {
             robarCarta();
         }
     }
-    public boolean colocarActivoDesdeMano(Pokemon c) {
+    public boolean colocarActivoDesdeMano(Pokemon c, int turnoActual) {
     if (!mano.contains(c) || campo.getActivo() != null) {
         return false;
     }
-    campo.setActivo(new PokemonEnJuego(c));
+    campo.setActivo(new PokemonEnJuego(c, turnoActual));
     mano.remove(c);
     return true;
     }

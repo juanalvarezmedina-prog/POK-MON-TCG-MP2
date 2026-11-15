@@ -41,13 +41,13 @@ public class Partida {
         }
 
         Pokemon activo = consola.elegirPokemonDeMano(j);
-        j.colocarActivoDesdeMano(activo);
+        j.colocarActivoDesdeMano(activo, turno);
 
         while (j.getCampo().hayEspacioEnBanco() && j.tieneBasicoEnMano()
                 && consola.preguntarSiNo("¿Colocar un Pokémon en el banco?")) {
             Pokemon p = consola.elegirPokemonDeMano(j);
             if (p != null) {
-                j.colocarEnBanco(p);
+                j.colocarEnBanco(p, turno);
             }
         }
     }
@@ -57,7 +57,7 @@ public class Partida {
         Jugador rival = jugadores[1 - indiceJugadorActivo];
 
         actual.iniciarTurno();
-        if (!actual.robarCarta()) {          // mazo vacío: pierde  juantails: por queeeeee?
+        if (!actual.robarCarta()) {          // RF2/RF3: sin cartas para robar, pierde el duelo
             consola.registrarAccion(actual.getNombre() + " no tiene cartas para robar.");
             ganador = rival;
             return;
@@ -88,7 +88,10 @@ public class Partida {
 
         if (ganador == null) {
             indiceJugadorActivo = 1 - indiceJugadorActivo;
-            turno++;
+            // El turno es una ronda completa: solo sube cuando vuelve a jugar el jugador 1
+            if (indiceJugadorActivo == 0) {
+                turno++;
+            }
         }
     }
 
@@ -141,7 +144,7 @@ public class Partida {
         if (p == null) {
             return;
         }
-        if (actual.colocarEnBanco(p)) {
+        if (actual.colocarEnBanco(p, turno)) {
             String info = consola.capturarSalida(p::mostrarInformacion);
             consola.registrarAccion(actual.getNombre() + " colocó en el banco:\n" + info);
         } else {
@@ -169,7 +172,7 @@ public class Partida {
 
     private boolean atacar(Jugador actual, Jugador rival) {
         if (turno == 1) {
-            consola.registrarAccion("El primer jugador no puede atacar en su primer turno.");
+            consola.registrarAccion("Nadie puede atacar en el turno 1.");
             return false;
         }
         Ataque ataque = consola.elegirAtaque(actual.getCampo().getActivo());
