@@ -5,11 +5,9 @@ import java.awt.Color;
 public class InterfazPelea {
   public static void main(String[] args) {
 
-
-
      JFrame frame = new JFrame("Batalla Pokemon");
      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-     frame.setSize(1500, 820);
+     frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
      JPanel panel = new JPanel();
      panel.setLayout(null);
      panel.setBackground(Color.decode("#2DAEFD"));
