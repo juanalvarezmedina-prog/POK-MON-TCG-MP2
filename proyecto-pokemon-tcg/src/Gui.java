@@ -102,6 +102,12 @@ public class Gui extends JFrame {
         panelNorte.add(new JLabel("Zona de Energía:"));
         TipoEnergia[] zonas = { TipoEnergia.Fuego, TipoEnergia.Agua, TipoEnergia.Electrico, TipoEnergia.Psiquico };
         JComboBox<TipoEnergia> cmbZona = new JComboBox<>(zonas);
+        
+        //para cuando se agregen lo otrso tipos de energia, se puede descomentar este codigo y agregarlo al combo
+        //TipoEnergia[] zonas = {
+        //TipoEnergia.Fuego, TipoEnergia.Agua, TipoEnergia.Electrico, TipoEnergia.Psiquico,
+        //TipoEnergia.Planta, TipoEnergia.Lucha, TipoEnergia.Metal, TipoEnergia.Siniestro
+        //};
         if (zonaPrevia != null) {
             cmbZona.setSelectedItem(zonaPrevia);
         }
