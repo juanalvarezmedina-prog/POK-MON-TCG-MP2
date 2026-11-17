@@ -279,4 +279,20 @@ public class CartaFactory {
             "Pocion", "Pocion", "Pokeball", "Pokeball",
             "Turbo Velocidad", "Turbo Velocidad"));
     }
+
+public static List<String> nombresMazos() {
+        return List.of("Fuego", "Agua", "Eléctrico", "Psíquico");
+    }
+
+    public static Jugador crearJugador(String nombreJugador, String nombreMazo) {
+        if (nombreMazo == null) {
+            return new Jugador(nombreJugador, mazoPsiquico(), TipoEnergia.Psiquico);
+        }
+        return switch (nombreMazo) {
+            case "Fuego" -> new Jugador(nombreJugador, mazoFuego(), TipoEnergia.Fuego);
+            case "Agua" -> new Jugador(nombreJugador, mazoAgua(), TipoEnergia.Agua);
+            case "Eléctrico" -> new Jugador(nombreJugador, mazoElectrico(), TipoEnergia.Electrico);
+            default -> new Jugador(nombreJugador, mazoPsiquico(), TipoEnergia.Psiquico);
+        };
+    }
 }

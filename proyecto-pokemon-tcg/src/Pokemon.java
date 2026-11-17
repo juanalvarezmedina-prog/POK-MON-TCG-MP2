@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class Pokemon extends Carta {
@@ -7,19 +6,18 @@ public abstract class Pokemon extends Carta {
     private TipoEnergia tipo;
     private int psMaximos;
     private int costoRetirada;
-    private List<Ataque> ataques;         
+    private List<Ataque> ataques;
 
     public Pokemon(String nombre, TipoEnergia tipo, int psMaximos, int costoRetirada) {
         super(nombre);
         this.tipo = tipo;
         this.psMaximos = psMaximos;
         this.costoRetirada = costoRetirada;
-        this.ataques = new ArrayList<>(); 
+        this.ataques = new ArrayList<>();
     }
 
-    // 3. getter y forma de agregar ataques
     public List<Ataque> getAtaques() {
-        return Collections.unmodifiableList(ataques);
+        return new ArrayList<>(ataques);
     }
 
     protected void agregarAtaque(Ataque ataque) {
@@ -44,18 +42,20 @@ public abstract class Pokemon extends Carta {
 
     public abstract int getPuntosPremio();
 
-    @Override 
-    public void mostrarInformacion() {
-        System.out.println("Nombre: " + getNombre());
-        System.out.println("Tipo: " + getTipo());
-        System.out.println("PS Máximos: " + getPsMaximos());
-        System.out.println("Costo de Retirada: " + getCostoRetirada());
+    @Override
+    public String obtenerInformacion() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Nombre: ").append(getNombre()).append("\n");
+        sb.append("Tipo: ").append(getTipo()).append("\n");
+        sb.append("PS Máximos: ").append(getPsMaximos()).append("\n");
+        sb.append("Costo de Retirada: ").append(getCostoRetirada());
         for (int i = 0; i < ataques.size(); i++) {
             Ataque ataque = ataques.get(i);
-            System.out.println("Ataque " + (i + 1) + ": " + ataque.getNombre() +
-                    ", Tipo: " + ataque.getTipoEnergia() +
-                    ", Costo: " + ataque.getCosto() +
-                    ", Daño: " + ataque.getDano());
+            sb.append("\nAtaque ").append(i + 1).append(": ").append(ataque.getNombre())
+            .append(", Tipo: ").append(ataque.getTipoEnergia())
+            .append(", Costo: ").append(ataque.getCosto())
+            .append(", Daño: ").append(ataque.getDano());
         }
+        return sb.toString();
     }
 }
