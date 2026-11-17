@@ -29,7 +29,7 @@ public class PokemonEnJuego {
 
     // para agregar o quitar energías hay que usar los métodos de abajo
     public List<TipoEnergia> getEnergias() {
-        return Collections.unmodifiableList(energias);
+        return new ArrayList<>(energias);
     }
 
     // NUEVO

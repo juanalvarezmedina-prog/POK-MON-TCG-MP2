@@ -16,6 +16,10 @@ public class Entrenador extends Carta implements Activable {
         return soporte;
     }
 
+    public String getDescripcion() {
+        return descripcion;
+    }
+
     @Override
     public boolean activar(Jugador jugador, Jugador rival) {
         return estrategia != null && estrategia.activar(jugador, rival);
@@ -30,8 +34,7 @@ public class Entrenador extends Carta implements Activable {
     }
 
     @Override
-    public void mostrarInformacion() {
-        System.out.println("Nombre: " + getNombre());
-        System.out.println("Efecto: " + descripcion);
+    public String obtenerInformacion() {
+        return "Nombre: " + getNombre() + "\nEfecto: " + descripcion;
     }
 }
