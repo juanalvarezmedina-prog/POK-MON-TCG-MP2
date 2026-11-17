@@ -9,6 +9,7 @@ public class Estilo {
     public static final Color ACCION = Color.decode("#ECF4F8");
     public static final Color ACCION_CLICK = Color.decode("#6d7071");
     public static final Color BORDE_ACCION = Color.decode("#262627");
+
     public static Font fuente(float size) {
         return new Font("Lexend", Font.BOLD, (int) size);
     }
@@ -36,4 +37,12 @@ public class Estilo {
         OnClickEventHelper.setOnClickColor(boton, ACCION_CLICK, ACCION);
         return boton;
     }
+
+    public static JLabel crearTexto(String texto, int ancho, int alto) {
+        JLabel etiqueta = new JLabel(texto);
+        etiqueta.setPreferredSize(new Dimension(ancho, alto));
+        etiqueta.setFont(fuente(14f));
+        return etiqueta;
+    }
+
 }

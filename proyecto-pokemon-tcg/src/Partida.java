@@ -3,7 +3,7 @@ import java.util.List;
 public class Partida {
     private static final int PUNTOS_PARA_GANAR = 3;
 
-    private final Jugador[] jugadores;
+    final Jugador[] jugadores;
     private final Consola consola;
     private int turno;
     private int indiceJugadorActivo;
