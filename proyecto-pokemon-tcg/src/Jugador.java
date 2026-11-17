@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
 
 public class Jugador {
     private static final int ManoInicial = 5;
@@ -32,7 +31,7 @@ public class Jugador {
     }
 
     public List<Carta> getMano() {
-        return Collections.unmodifiableList(mano);
+        return new ArrayList<>(mano);
     }
 
     public void agregarAMano(Carta carta) {
@@ -53,6 +52,10 @@ public class Jugador {
 
     public int getPuntosPremio() {
         return puntosPremio;
+    }
+
+    public TipoEnergia getTipoZona() {
+        return tipoZona;
     }
 
     public TipoEnergia getEnergiaDisponible() {
@@ -82,20 +85,23 @@ public class Jugador {
         return true;
     }
 
-    public boolean adjuntarEnergiaDeZona(PokemonEnJuego destino) {
-        if (energiaDisponible == null || destino == null) {
-            return false;
+    public String adjuntarEnergiaDeZona(PokemonEnJuego destino) {
+        if (energiaDisponible == null) {
+            return "Ya usaste la energía de zona de este turno.";
+        }
+        if (destino == null) {
+            return "Debes elegir un Pokémon destino.";
         }
         boolean esPropio = destino == campo.getActivo() || campo.getBanco().contains(destino);
         if (!esPropio) {
-            return false;
+            return "Solo puedes adjuntar energía a uno de tus Pokémon.";
         }
         destino.adjuntarEnergia(energiaDisponible);
         energiaDisponible = null;
-        return true;
+        return null;
     }
 
-    public boolean jugarEntrenador(Entrenador c, Jugador rival) {
+    public String jugarEntrenador(Entrenador c, Jugador rival) {
         return jugarEntrenador(c, rival, null);
     }
 
@@ -104,28 +110,39 @@ public class Jugador {
     }
 
     // objetivo: Pokemon elegido por el jugador (null si la carta no lo necesita)
-    public boolean jugarEntrenador(Entrenador c, Jugador rival, PokemonEnJuego objetivo) {
-        if (!puedeJugarEntrenador(c)) {
-            return false;
+    public String jugarEntrenador(Entrenador c, Jugador rival, PokemonEnJuego objetivo) {
+        if (c == null || !mano.contains(c)) {
+            return "Esa carta no está en tu mano.";
+        }
+        if (c.esSoporte() && yaUsoSoporte) {
+            return "Ya jugaste una carta de Soporte en este turno.";
         }
 
         boolean seJugo = c.activar(this, rival, objetivo);
-        if (seJugo) {
-            if (c.esSoporte()) {
-                yaUsoSoporte = true;
-            }
-            mano.remove(c);
+        if (!seJugo) {
+            return "No se cumplen las condiciones para jugar " + c.getNombre() + ".";
         }
-        return seJugo;
+
+        if (c.esSoporte()) {
+            yaUsoSoporte = true;
+        }
+        mano.remove(c);
+        return null;
     }
 
-    public boolean colocarEnBanco(Pokemon c, int turnoActual) {
-        if (!mano.contains(c) || !c.esBasico() || !campo.hayEspacioEnBanco()) {
-            return false;
+    public String colocarEnBanco(Pokemon c, int turnoActual) {
+        if (c == null || !mano.contains(c)) {
+            return "Esa carta no está en tu mano.";
+        }
+        if (!c.esBasico()) {
+            return c.getNombre() + " no es un Pokémon básico.";
+        }
+        if (!campo.hayEspacioEnBanco()) {
+            return "Tu banco está lleno.";
         }
         campo.colocarEnBanco(new PokemonEnJuego(c, turnoActual));
         mano.remove(c);
-        return true;
+        return null;
     }
 
     // Devuelve null si la evolución se hizo; si no, devuelve el motivo por el que falló.
@@ -156,32 +173,38 @@ public class Jugador {
         return null;
     }
 
-    public boolean retirarActivo(int indiceBanco) {
+    public String retirarActivo(int indiceBanco) {
         PokemonEnJuego activo = campo.getActivo();
-        if (activo == null || indiceBanco < 0 || indiceBanco >= campo.getBanco().size()) {
-            return false;
+        if (activo == null) {
+            return "No tienes un Pokémon activo para retirar.";
+        }
+        if (indiceBanco < 0 || indiceBanco >= campo.getBanco().size()) {
+            return "Debes elegir un Pokémon válido del banco.";
         }
         int costo = activo.getCostoRetiradaActual();
         if (activo.getEnergias().size() < costo) {
-            return false;
+            return activo.getCarta().getNombre() + " necesita " + costo + " energía(s) para retirarse.";
         }
         activo.descartarEnergias(costo);
         campo.intercambiarActivo(indiceBanco);
-        return true;
+        return null;
     }
 
-    public boolean atacar(Jugador rival, Ataque ataque) {
+    public String atacar(Jugador rival, Ataque ataque) {
         PokemonEnJuego atacante = campo.getActivo();
         PokemonEnJuego defensor = rival.getCampo().getActivo();
 
-        if (yaAtaco || atacante == null || defensor == null) {
-            return false;
+        if (yaAtaco) {
+            return "Ya atacaste en este turno.";
         }
-        if (!atacante.getCarta().getAtaques().contains(ataque)) {
-            return false;
+        if (atacante == null || defensor == null) {
+            return "Debe haber un Pokémon activo en ambos lados para atacar.";
+        }
+        if (ataque == null || !atacante.getCarta().getAtaques().contains(ataque)) {
+            return atacante.getCarta().getNombre() + " no conoce ese ataque.";
         }
         if (!ataque.puedeUsarse(atacante.getEnergias())) {
-            return false;
+            return atacante.getCarta().getNombre() + " no tiene la energía necesaria para " + ataque.getNombre() + ".";
         }
 
         int dano = ataque.getDano();
@@ -195,7 +218,7 @@ public class Jugador {
             sumarPuntos(defensor.getCarta().getPuntosPremio());
             rival.getCampo().eliminarActivo();
         }
-        return true;
+        return null;
     }
 
     public void sumarPuntos(int n) {

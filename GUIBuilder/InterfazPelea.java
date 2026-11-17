@@ -5,18 +5,18 @@ import java.awt.Color;
 public class InterfazPelea {
   public static void main(String[] args) {
 
-     JFrame frame = new JFrame("Batalla Pokemon");
-     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-     frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-     JPanel panel = new JPanel();
-     panel.setLayout(null);
-     panel.setBackground(Color.decode("#2DAEFD"));
-     frame.add(panel);
-     frame.setVisible(true);
+    JFrame frame = new JFrame("Batalla Pokemon");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    JPanel panel = new JPanel();
+    panel.setLayout(null);
+    panel.setBackground(Color.decode("#2DAEFD"));
+    frame.add(panel);
+    frame.setVisible(true);
 
      //botones de pokemones
 
-     JButton activo= Estilo.crearCarta("Pokemon Activo", 100, 200);
+    JButton activo= Estilo.crearCarta("Pokemon Activo", 100, 200);
       panel.add(activo);
 
     JButton banco1= Estilo.crearCarta("Banco 1", 100, 200);
