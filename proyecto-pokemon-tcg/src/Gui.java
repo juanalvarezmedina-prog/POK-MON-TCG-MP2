@@ -327,10 +327,8 @@ public class Gui extends JFrame {
         Partida partida = new Partida(j1, j2);
         partida.prepararInicial();
 
-        // Cuando crees VentanaTablero (PR 4), reemplaza este mensaje por:
-        // new VentanaTablero(partida).setVisible(true);
-        // dispose();
-        JOptionPane.showMessageDialog(this,
-                "¡Partida lista entre " + j1.getNombre() + " y " + j2.getNombre() + "!");
+        new InterfazPelea(partida);
+        dispose();
     }
 }
+
