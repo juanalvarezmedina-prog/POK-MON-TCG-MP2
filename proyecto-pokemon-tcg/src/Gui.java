@@ -1,12 +1,23 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 
 public class Gui extends JFrame {
     private final JTextField txtJugador1;
@@ -15,10 +26,15 @@ public class Gui extends JFrame {
     private final JComboBox<String> cmbMazo2;
     private final JButton btnIniciar;
 
+    private Mazo mazoPersonalizado1;
+    private TipoEnergia zonaPersonalizada1;
+    private Mazo mazoPersonalizado2;
+    private TipoEnergia zonaPersonalizada2;
+
     public Gui() {
         setTitle("Pokémon TCG - Inicio");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 260);
+        setSize(480, 280);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
@@ -26,29 +42,203 @@ public class Gui extends JFrame {
 
         String[] mazos = CartaFactory.nombresMazos().toArray(new String[0]);
 
+        // Jugador 1
         panel.add(new JLabel("Nombre Jugador 1:"));
         txtJugador1 = new JTextField();
         panel.add(txtJugador1);
 
         panel.add(new JLabel("Mazo Jugador 1:"));
+        JPanel panelMazo1 = new JPanel(new BorderLayout(5, 0));
         cmbMazo1 = new JComboBox<>(mazos);
-        panel.add(cmbMazo1);
+        JButton btnArmar1 = new JButton("Armar mazo");
+        btnArmar1.addActionListener(e -> abrirCreadorMazo(1));
+        panelMazo1.add(cmbMazo1, BorderLayout.CENTER);
+        panelMazo1.add(btnArmar1, BorderLayout.EAST);
+        panel.add(panelMazo1);
 
+        // Jugador 2
         panel.add(new JLabel("Nombre Jugador 2:"));
         txtJugador2 = new JTextField();
         panel.add(txtJugador2);
 
         panel.add(new JLabel("Mazo Jugador 2:"));
+        JPanel panelMazo2 = new JPanel(new BorderLayout(5, 0));
         cmbMazo2 = new JComboBox<>(mazos);
-        panel.add(cmbMazo2);
+        JButton btnArmar2 = new JButton("Armar mazo");
+        btnArmar2.addActionListener(e -> abrirCreadorMazo(2));
+        panelMazo2.add(cmbMazo2, BorderLayout.CENTER);
+        panelMazo2.add(btnArmar2, BorderLayout.EAST);
+        panel.add(panelMazo2);
 
+        // Botón Iniciar
         panel.add(new JLabel());
         btnIniciar = new JButton("Iniciar Partida");
+        btnIniciar.addActionListener(e -> iniciarPartida());
         panel.add(btnIniciar);
 
-        btnIniciar.addActionListener(e -> iniciarPartida());
-
         add(panel);
+    }
+
+    private void abrirCreadorMazo(int numJugador) {
+        JDialog dialogo = new JDialog(this, "Armar Mazo - Jugador " + numJugador, true);
+        dialogo.setSize(680, 460);
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setLayout(new BorderLayout(10, 10));
+
+        // Norte: Selección de zona de energía y contador
+        JPanel panelNorte = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        panelNorte.add(new JLabel("Zona de Energía:"));
+        TipoEnergia[] zonas = { TipoEnergia.Fuego, TipoEnergia.Agua, TipoEnergia.Electrico, TipoEnergia.Psiquico };
+        JComboBox<TipoEnergia> cmbZona = new JComboBox<>(zonas);
+        panelNorte.add(cmbZona);
+
+        JLabel lblEstado = new JLabel("Cartas: 0/20 | Básicos: 0/6");
+        lblEstado.setFont(Estilo.fuente(13f));
+        panelNorte.add(lblEstado);
+        dialogo.add(panelNorte, BorderLayout.NORTH);
+
+        // Lista izquierda: Cartas disponibles
+        DefaultListModel<String> modeloDisponibles = new DefaultListModel<>();
+        for (String nombre : CartaFactory.nombresDisponibles()) {
+            modeloDisponibles.addElement(nombre);
+        }
+        JList<String> listaDisponibles = new JList<>(modeloDisponibles);
+        listaDisponibles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollIzq = new JScrollPane(listaDisponibles);
+        scrollIzq.setBorder(BorderFactory.createTitledBorder("Cartas disponibles"));
+        scrollIzq.setPreferredSize(new Dimension(230, 0));
+
+        // Lista derecha: Cartas elegidas en el mazo
+        DefaultListModel<String> modeloElegidas = new DefaultListModel<>();
+        JList<String> listaElegidas = new JList<>(modeloElegidas);
+        listaElegidas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollDer = new JScrollPane(listaElegidas);
+        scrollDer.setBorder(BorderFactory.createTitledBorder("Tu mazo (20 cartas)"));
+        scrollDer.setPreferredSize(new Dimension(230, 0));
+
+        // Centro: Botones Agregar / Quitar + vista previa de carta
+        JPanel panelCentro = new JPanel(new GridLayout(4, 1, 8, 8));
+        panelCentro.setBorder(BorderFactory.createEmptyBorder(40, 5, 40, 5));
+        JButton btnAgregar = new JButton("Agregar >>");
+        JButton btnQuitar = new JButton("<< Quitar");
+        JLabel lblInfoCarta = new JLabel("Selecciona una carta", SwingConstants.CENTER);
+
+        listaDisponibles.addListSelectionListener(e -> {
+            String sel = listaDisponibles.getSelectedValue();
+            if (sel != null) {
+                Carta c = CartaFactory.crearCarta(sel);
+                if (c != null) {
+                    lblInfoCarta.setText("<html><center>" + c.obtenerInformacion().replace("\n", "<br>") + "</center></html>");
+                }
+            }
+        });
+
+        Runnable actualizarContador = () -> {
+            int total = modeloElegidas.size();
+            int basicos = 0;
+            for (int i = 0; i < total; i++) {
+                Carta c = CartaFactory.crearCarta(modeloElegidas.getElementAt(i));
+                if (c instanceof Pokemon p && p.esBasico()) {
+                    basicos++;
+                }
+            }
+            lblEstado.setText("Cartas: " + total + "/20 | Básicos: " + basicos + "/6");
+        };
+
+        btnAgregar.addActionListener(e -> {
+            String seleccionada = listaDisponibles.getSelectedValue();
+            if (seleccionada == null) {
+                return;
+            }
+            if (modeloElegidas.size() >= 20) {
+                JOptionPane.showMessageDialog(dialogo, "El mazo ya tiene el máximo de 20 cartas.");
+                return;
+            }
+            int copias = 0;
+            for (int i = 0; i < modeloElegidas.size(); i++) {
+                if (modeloElegidas.getElementAt(i).equalsIgnoreCase(seleccionada)) {
+                    copias++;
+                }
+            }
+            if (copias >= 2) {
+                JOptionPane.showMessageDialog(dialogo, "Solo puedes incluir máximo 2 copias de " + seleccionada + ".");
+                return;
+            }
+            modeloElegidas.addElement(seleccionada);
+            actualizarContador.run();
+        });
+
+        btnQuitar.addActionListener(e -> {
+            int idx = listaElegidas.getSelectedIndex();
+            if (idx >= 0) {
+                modeloElegidas.remove(idx);
+                actualizarContador.run();
+            }
+        });
+
+        panelCentro.add(btnAgregar);
+        panelCentro.add(btnQuitar);
+        panelCentro.add(lblInfoCarta);
+
+        JPanel panelListas = new JPanel(new BorderLayout(8, 8));
+        panelListas.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        panelListas.add(scrollIzq, BorderLayout.WEST);
+        panelListas.add(panelCentro, BorderLayout.CENTER);
+        panelListas.add(scrollDer, BorderLayout.EAST);
+        dialogo.add(panelListas, BorderLayout.CENTER);
+
+        // Sur: Guardar o Cancelar
+        JPanel panelSur = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
+        JButton btnCancelar = new JButton("Cancelar");
+        JButton btnGuardar = new JButton("Guardar Mazo");
+
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+        btnGuardar.addActionListener(e -> {
+            List<String> nombres = new ArrayList<>();
+            for (int i = 0; i < modeloElegidas.size(); i++) {
+                nombres.add(modeloElegidas.getElementAt(i));
+            }
+            Mazo nuevoMazo = CartaFactory.crearMazo(nombres);
+            if (!nuevoMazo.esValido()) {
+                JOptionPane.showMessageDialog(dialogo,
+                        "El mazo no es válido.\nDebe tener exactamente 20 cartas, máximo 2 copias de cada una y mínimo 6 Pokémon básicos.",
+                        "Mazo inválido",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            TipoEnergia zonaElegida = (TipoEnergia) cmbZona.getSelectedItem();
+            if (numJugador == 1) {
+                mazoPersonalizado1 = nuevoMazo;
+                zonaPersonalizada1 = zonaElegida;
+                seleccionarOpcionPersonalizada(cmbMazo1);
+            } else {
+                mazoPersonalizado2 = nuevoMazo;
+                zonaPersonalizada2 = zonaElegida;
+                seleccionarOpcionPersonalizada(cmbMazo2);
+            }
+            dialogo.dispose();
+        });
+
+        panelSur.add(btnCancelar);
+        panelSur.add(btnGuardar);
+        dialogo.add(panelSur, BorderLayout.SOUTH);
+
+        dialogo.setVisible(true);
+    }
+
+    private void seleccionarOpcionPersonalizada(JComboBox<String> combo) {
+        boolean existe = false;
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            if ("Personalizado".equals(combo.getItemAt(i))) {
+                existe = true;
+                break;
+            }
+        }
+        if (!existe) {
+            combo.addItem("Personalizado");
+        }
+        combo.setSelectedItem("Personalizado");
     }
 
     private void iniciarPartida() {
@@ -63,11 +253,16 @@ public class Gui extends JFrame {
             return;
         }
 
-        String mazo1 = (String) cmbMazo1.getSelectedItem();
-        String mazo2 = (String) cmbMazo2.getSelectedItem();
+        String selMazo1 = (String) cmbMazo1.getSelectedItem();
+        String selMazo2 = (String) cmbMazo2.getSelectedItem();
 
-        Jugador j1 = CartaFactory.crearJugador(nombre1, mazo1);
-        Jugador j2 = CartaFactory.crearJugador(nombre2, mazo2);
+        Jugador j1 = "Personalizado".equals(selMazo1) && mazoPersonalizado1 != null
+                ? new Jugador(nombre1, mazoPersonalizado1, zonaPersonalizada1)
+                : CartaFactory.crearJugador(nombre1, selMazo1);
+
+        Jugador j2 = "Personalizado".equals(selMazo2) && mazoPersonalizado2 != null
+                ? new Jugador(nombre2, mazoPersonalizado2, zonaPersonalizada2)
+                : CartaFactory.crearJugador(nombre2, selMazo2);
 
         if (!j1.getMazo().esValido()) {
             JOptionPane.showMessageDialog(this,
