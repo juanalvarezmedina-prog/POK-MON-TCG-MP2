@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import helper_classes.*;
 public class Estilo {
     public static final Color CARTA = Color.decode("#E5A700");
     public static final Color CARTA_CLICK = Color.decode("#CE840E");
