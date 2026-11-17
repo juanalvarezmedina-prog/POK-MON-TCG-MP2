@@ -40,8 +40,13 @@ public class Partida {
             j.hacerMulligan();
         }
 
-        Pokemon activo = consola.elegirPokemonDeMano(j);
-        j.colocarActivoDesdeMano(activo, turno);
+        // Se repite hasta que haya un activo colocado
+        while (j.getCampo().getActivo() == null) {
+            Pokemon activo = consola.elegirPokemonDeMano(j);
+            if (activo != null && !j.colocarActivoDesdeMano(activo, turno)) {
+                consola.mostrarMensaje("No puedes colocar " + activo.getNombre() + " como Pokémon activo.");
+            }
+        }
 
         while (j.getCampo().hayEspacioEnBanco() && j.tieneBasicoEnMano()
                 && consola.preguntarSiNo("¿Colocar un Pokémon en el banco?")) {
@@ -67,7 +72,7 @@ public class Partida {
         while (!terminoTurno && ganador == null) {
             consola.mostrarCampo(actual, rival, turno);
             consola.mostrarMenuAcciones();
-            int opcion = consola.leerOpcion(1, 6);
+            int opcion = consola.leerOpcion(1, 7);
 
             switch (opcion) {
                 case 1 -> adjuntarEnergia(actual);
@@ -79,7 +84,8 @@ public class Partida {
                         terminoTurno = true;
                     }
                 }
-                case 6 -> {
+                case 6 -> evolucionar(actual);
+                case 7 -> {
                     consola.registrarAccion(actual.getNombre() + " pasó el turno.");
                     terminoTurno = true;
                 }
@@ -152,6 +158,26 @@ public class Partida {
         }
     }
 
+    private void evolucionar(Jugador actual) {
+        PokemonEvolucion carta = consola.elegirEvolucionDeMano(actual);
+        if (carta == null) {
+            return;
+        }
+        PokemonEnJuego objetivo = consola.elegirPokemonPropio(actual);
+        if (objetivo == null) {
+            return;
+        }
+
+        String nombreAntes = objetivo.getCarta().getNombre();
+        String error = actual.evolucionar(carta, objetivo, turno);
+        if (error == null) {
+            consola.registrarAccion(actual.getNombre() + " evolucionó a " + nombreAntes
+                    + " en " + carta.getNombre() + ".");
+        } else {
+            consola.registrarAccion(error);
+        }
+    }
+
     private void retirar(Jugador actual) {
         if (actual.getCampo().getBanco().isEmpty()) {
             consola.registrarAccion("No tienes Pokémon en el banco.");
@@ -214,7 +240,6 @@ public class Partida {
         return true;
     }
 
-    
     public boolean verificarVictoria() {
         for (int i = 0; i < 2; i++) {
             Jugador j = jugadores[i];

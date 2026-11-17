@@ -122,20 +122,21 @@ public class Consola {
         System.out.println("3. Colocar Pokemon en banco");
         System.out.println("4. Retirar Pokemon activo");
         System.out.println("5. Atacar");
-        System.out.println("6. Pasar turno");
+        System.out.println("6. Evolucionar Pokemon");
+        System.out.println("7. Pasar turno");
     }
 
-    // Devuelve null si cancela o si no hay Pokemon en la mano.
+    // Devuelve null si cancela o si no hay Pokemon basicos en la mano.
     // Sin activo (inicio de partida) no se permite cancelar.
     public Pokemon elegirPokemonDeMano(Jugador jugador) {
         List<Pokemon> opciones = new ArrayList<>();
         for (Carta c : jugador.getMano()) {
-            if (c instanceof Pokemon) {
+            if (c instanceof Pokemon && ((Pokemon) c).esBasico()) {
                 opciones.add((Pokemon) c);
             }
         }
         if (opciones.isEmpty()) {
-            registrarAccion("No tienes Pokemon en la mano.");
+            registrarAccion("No tienes Pokemon basicos en la mano.");
             return null;
         }
 
@@ -210,6 +211,31 @@ public class Consola {
         System.out.println("Elige una carta de entrenador:");
         for (int i = 0; i < opciones.size(); i++) {
             System.out.println((i + 1) + ". " + opciones.get(i).getNombre());
+        }
+        System.out.println("0. Cancelar");
+
+        int opcion = leerOpcion(0, opciones.size());
+        return opcion == 0 ? null : opciones.get(opcion - 1);
+    }
+
+    // Devuelve null si cancela o no hay cartas de evolucion en la mano.
+    public PokemonEvolucion elegirEvolucionDeMano(Jugador jugador) {
+        List<PokemonEvolucion> opciones = new ArrayList<>();
+        for (Carta c : jugador.getMano()) {
+            if (c instanceof PokemonEvolucion) {
+                opciones.add((PokemonEvolucion) c);
+            }
+        }
+        if (opciones.isEmpty()) {
+            registrarAccion("No tienes cartas de evolucion en la mano.");
+            return null;
+        }
+
+        System.out.println("Elige una carta de evolucion:");
+        for (int i = 0; i < opciones.size(); i++) {
+            PokemonEvolucion e = opciones.get(i);
+            System.out.println((i + 1) + ". " + e.getNombre() + " (" + e.getEtapa()
+                    + ", evoluciona de " + e.getEvolucionaDe() + ", " + e.getPsMaximos() + " PS)");
         }
         System.out.println("0. Cancelar");
 

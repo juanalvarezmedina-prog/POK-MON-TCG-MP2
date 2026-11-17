@@ -241,31 +241,42 @@ public class CartaFactory {
 
     public static Mazo mazoFuego() {
         return crearMazo(List.of(
-            "Charmander", "Charmander", "Moltres EX", "Moltres EX",
-            "Articuno EX", "Articuno EX", "Jigglypuff", "Jigglypuff",
-            "Snorlax", "Snorlax",
+            "Charmander", "Charmander", "Charmeleon", "Charmeleon",
+            "Charizard", "Charizard", "Moltres EX", "Moltres EX",
+            "Jigglypuff", "Jigglypuff", "Wigglytuff", "Snorlax", "Snorlax",
             "Investigacion del Profesor", "Investigacion del Profesor",
             "Pocion", "Pocion", "Pokeball", "Pokeball",
-            "Turbo Velocidad", "Turbo Velocidad", "Misty", "Misty"));
+            "Turbo Velocidad"));
     }
 
-public static Mazo mazoAgua() {
-    return crearMazo(List.of(
-        "Squirtle", "Squirtle", "Magikarp", "Magikarp",
-        "Articuno EX", "Articuno EX", "Jigglypuff", "Jigglypuff",
-        "Snorlax", "Snorlax",
-        "Investigacion del Profesor", "Investigacion del Profesor",
-        "Pocion", "Pocion", "Pokeball", "Pokeball",
-        "Misty", "Misty", "Turbo Velocidad", "Turbo Velocidad"));
-}
+    public static Mazo mazoAgua() {
+        return crearMazo(List.of(
+            "Squirtle", "Squirtle", "Wartortle", "Wartortle",
+            "Blastoise", "Blastoise", "Magikarp", "Magikarp", "Gyarados",
+            "Articuno EX", "Articuno EX", "Snorlax",
+            "Misty", "Misty", "Pokeball", "Pokeball",
+            "Investigacion del Profesor", "Investigacion del Profesor",
+            "Pocion", "Turbo Velocidad"));
+    }
 
-public static Mazo mazoElectrico() {
-    return crearMazo(List.of(
-        "Pikachu", "Pikachu", "Zapdos EX", "Zapdos EX",
-        "Articuno EX", "Articuno EX", "Jigglypuff", "Jigglypuff",
-        "Snorlax", "Snorlax",
-        "Investigacion del Profesor", "Investigacion del Profesor",
-        "Pocion", "Pocion", "Pokeball", "Pokeball",
-        "Turbo Velocidad", "Turbo Velocidad", "Misty", "Misty"));
-}
+    public static Mazo mazoElectrico() {
+        return crearMazo(List.of(
+            "Pikachu", "Pikachu", "Raichu", "Raichu",
+            "Zapdos EX", "Zapdos EX", "Jigglypuff", "Jigglypuff",
+            "Wigglytuff", "Wigglytuff", "Snorlax", "Snorlax",
+            "Investigacion del Profesor", "Investigacion del Profesor",
+            "Pocion", "Pocion", "Pokeball", "Pokeball",
+            "Turbo Velocidad", "Turbo Velocidad"));
+    }
+    
+    public static Mazo mazoPsiquico() {
+        return crearMazo(List.of(
+            "Mewtwo EX", "Mewtwo EX",
+            "Jigglypuff", "Jigglypuff", "Wigglytuff", "Wigglytuff",
+            "Snorlax", "Snorlax",
+            "Zapdos EX", "Zapdos EX", "Moltres EX", "Moltres EX",
+            "Investigacion del Profesor", "Investigacion del Profesor",
+            "Pocion", "Pocion", "Pokeball", "Pokeball",
+            "Turbo Velocidad", "Turbo Velocidad"));
+    }
 }
