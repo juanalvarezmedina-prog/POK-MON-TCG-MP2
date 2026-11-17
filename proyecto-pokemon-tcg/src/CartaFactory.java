@@ -123,15 +123,39 @@ public class CartaFactory {
                 return new Entrenador(
                     "Poción",
                     false,
-                    "Cura 20 PS al Pokémon Activo de tu lado del campo.",
+                    "Cura 20 PS a uno de tus Pokémon que tenga daño.",
                     new Activable() {
                         @Override
+                        public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
+                            List<PokemonEnJuego> heridos = new ArrayList<>();
+                            Campo campo = jugador.getCampo();
+                            PokemonEnJuego activo = campo.getActivo();
+                            if (activo != null && activo.getPsActuales() < activo.getCarta().getPsMaximos()) {
+                                heridos.add(activo);
+                            }
+                            for (PokemonEnJuego p : campo.getBanco()) {
+                                if (p.getPsActuales() < p.getCarta().getPsMaximos()) {
+                                    heridos.add(p);
+                                }
+                            }
+                            return heridos;
+                        }
+
+                        @Override
                         public boolean activar(Jugador jugador, Jugador rival) {
-                            PokemonEnJuego activo = jugador.getCampo().getActivo();
-                            if (activo == null) {
+                            List<PokemonEnJuego> heridos = objetivosPosibles(jugador);
+                            if (heridos.isEmpty()) {
                                 return false;
                             }
-                            activo.curar(20);
+                            return activar(jugador, rival, heridos.get(0));
+                        }
+
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival, PokemonEnJuego objetivo) {
+                            if (objetivo == null || !objetivosPosibles(jugador).contains(objetivo)) {
+                                return false;
+                            }
+                            objetivo.curar(20);
                             return true;
                         }
                     }
