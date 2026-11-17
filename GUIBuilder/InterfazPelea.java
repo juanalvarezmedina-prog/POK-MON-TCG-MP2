@@ -8,12 +8,11 @@ import java.util.List;
 public class InterfazPelea extends JFrame {
 
     private JLayeredPane lienzo;
-    
-    // Cartas del tablero
+
+    //juantails: Cartas del tablero
     private JButton activo, banco1, banco2;
     private JButton activoRival, banco1Rival, banco2Rival;
 
-    // Botones fijos a la derecha
     private JButton btnTerminarTurno, btnAdjuntarEnergia;
 
     // Panel desplegable del Pokémon Activo (Izquierda)
@@ -25,9 +24,18 @@ public class InterfazPelea extends JFrame {
     private JLabel lblTituloZoom;
     private JButton btnJugarCarta, btnCerrarZoom;
 
-    // Listas dinámicas para las manos
+    // Listas visuales de botones en mano
     private List<JButton> manoAliada = new ArrayList<>();
     private List<JButton> manoRival = new ArrayList<>();
+
+    // Estado de turnos y datos de prueba (listos para conectar con la lógica)
+    private boolean turnoJugador1 = true;
+
+    private String activoJ1 = "Charizard (J1)", banca1J1 = "Charmander", banca2J1 = "Vulpix";
+    private String activoJ2 = "Blastoise (J2)", banca1J2 = "Squirtle", banca2J2 = "Psyduck";
+
+    private List<String> cartasManoJ1 = new ArrayList<>(List.of("Pikachu", "Poción", "Energía Fuego", "Profesor Oak", "Raichu"));
+    private List<String> cartasManoJ2 = new ArrayList<>(List.of("Squirtle", "Energía Agua", "Switch", "Wartortle", "Super Poción"));
 
     public InterfazPelea() {
         setTitle("Batalla Pokémon TCG");
@@ -39,7 +47,7 @@ public class InterfazPelea extends JFrame {
         lienzo = new JLayeredPane();
         lienzo.setLayout(null);
         lienzo.setOpaque(true);
-        lienzo.setBackground(Color.decode("#888888")); // Fondo gris del boceto
+        lienzo.setBackground(Color.decode("#888888"));
         add(lienzo);
 
         inicializarTablero();
@@ -47,13 +55,10 @@ public class InterfazPelea extends JFrame {
         inicializarPanelActivo();
         inicializarPanelZoom();
 
-        // Simulación inicial: 5 cartas para cada jugador
-        for (int i = 1; i <= 5; i++) {
-            agregarCartaManoAliada("Pikachu #" + i);
-            agregarCartaManoRival();
-        }
+        // Renderiza el estado inicial (Turno Jugador 1)
+        actualizarPerspectiva();
 
-        // Si se hace clic en el fondo gris vacío, se cierran los paneles desplegables
+        // Cerrar paneles desplegables si se hace clic en el fondo gris
         lienzo.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -84,7 +89,7 @@ public class InterfazPelea extends JFrame {
         banco1.setBounds(430, 505, 120, 155);
         banco2.setBounds(690, 505, 120, 155);
 
-        // Evento al hacer clic en el Pokémon Activo: abre/cierra el menú lateral
+        // Desplegar opciones al hacer clic en el Pokémon Activo
         activo.addActionListener(e -> {
             panelZoomCarta.setVisible(false);
             panelOpcionesActivo.setVisible(!panelOpcionesActivo.isVisible());
@@ -106,10 +111,24 @@ public class InterfazPelea extends JFrame {
         btnAdjuntarEnergia.setBackground(Estilo.CARTA_ALIADA);
         btnAdjuntarEnergia.setBounds(960, 550, 220, 55);
 
-        // Ejemplo de prueba: al terminar turno, roba una carta para probar el dinamismo
+        // Cambio de turno y giro de perspectiva
         btnTerminarTurno.addActionListener(e -> {
-            agregarCartaManoAliada("Nueva Carta");
-            agregarCartaManoRival();
+            panelOpcionesActivo.setVisible(false);
+            panelZoomCarta.setVisible(false);
+
+            turnoJugador1 = !turnoJugador1;
+
+            // Simulación de robo de carta al empezar el turno
+            if (turnoJugador1) {
+                cartasManoJ1.add("Carta J1 #" + (cartasManoJ1.size() + 1));
+            } else {
+                cartasManoJ2.add("Carta J2 #" + (cartasManoJ2.size() + 1));
+            }
+
+            String siguiente = turnoJugador1 ? "Jugador 1" : "Jugador 2";
+            JOptionPane.showMessageDialog(this, "Cambio de turno. Ahora juega: " + siguiente);
+
+            actualizarPerspectiva();
         });
 
         lienzo.add(btnTerminarTurno, JLayeredPane.DEFAULT_LAYER);
@@ -125,7 +144,7 @@ public class InterfazPelea extends JFrame {
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         panelOpcionesActivo.setBounds(90, 260, 280, 220);
-        panelOpcionesActivo.setVisible(false); // Oculto hasta hacer clic en Activo
+        panelOpcionesActivo.setVisible(false);
 
         btnAtacar = Estilo.crearBotonAccion("Atacar");
         btnRetirar = Estilo.crearBotonAccion("Retirar Pokémon");
@@ -135,7 +154,6 @@ public class InterfazPelea extends JFrame {
         panelOpcionesActivo.add(btnRetirar);
         panelOpcionesActivo.add(btnEvolucionar);
 
-        // Lo colocamos en la capa POPUP_LAYER para que flote sobre el tablero
         lienzo.add(panelOpcionesActivo, JLayeredPane.POPUP_LAYER);
     }
 
@@ -165,6 +183,41 @@ public class InterfazPelea extends JFrame {
         lienzo.add(panelZoomCarta, JLayeredPane.MODAL_LAYER);
     }
 
+    // --- VOLTEO DE PERSPECTIVA ENTRE JUGADORES ---
+    public void actualizarPerspectiva() {
+        for (JButton b : manoAliada) lienzo.remove(b);
+        for (JButton b : manoRival) lienzo.remove(b);
+        manoAliada.clear();
+        manoRival.clear();
+
+        if (turnoJugador1) {
+            activo.setText(activoJ1);
+            banco1.setText(banca1J1);
+            banco2.setText(banca2J1);
+
+            activoRival.setText(activoJ2);
+            banco1Rival.setText(banca1J2);
+            banco2Rival.setText(banca2J2);
+
+            for (String carta : cartasManoJ1) agregarCartaManoAliada(carta);
+            for (int i = 0; i < cartasManoJ2.size(); i++) agregarCartaManoRival();
+        } else {
+            activo.setText(activoJ2);
+            banco1.setText(banca1J2);
+            banco2.setText(banca2J2);
+
+            activoRival.setText(activoJ1);
+            banco1Rival.setText(banca1J1);
+            banco2Rival.setText(banca2J1);
+
+            for (String carta : cartasManoJ2) agregarCartaManoAliada(carta);
+            for (int i = 0; i < cartasManoJ1.size(); i++) agregarCartaManoRival();
+        }
+
+        lienzo.revalidate();
+        lienzo.repaint();
+    }
+
     // --- GESTIÓN DINÁMICA DE LA MANO DEL JUGADOR ---
     public void agregarCartaManoAliada(String nombreCarta) {
         JButton carta = new JButton(nombreCarta);
@@ -173,18 +226,15 @@ public class InterfazPelea extends JFrame {
         carta.setFocusPainted(false);
         carta.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 2));
 
-        // Efecto Hover (elevación) y Zoom al hacer clic
         carta.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                // Sube 35 píxeles y pasa al frente
                 carta.setLocation(carta.getX(), 635);
                 lienzo.moveToFront(carta);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                // Vuelve a su posición normal abajo
                 carta.setLocation(carta.getX(), 670);
                 reordenarCapasManoAliada();
             }
@@ -206,9 +256,9 @@ public class InterfazPelea extends JFrame {
     private void actualizarPosicionesManoAliada() {
         int anchoCarta = 110;
         int altoCarta = 150;
-        int solapamiento = 65; // Qué tanto se monta una carta sobre otra
+        int solapamiento = 65;
         int anchoTotal = (manoAliada.size() - 1) * solapamiento + anchoCarta;
-        int inicioX = (1280 - anchoTotal) / 2; // Centrado automático
+        int inicioX = (1280 - anchoTotal) / 2;
 
         for (int i = 0; i < manoAliada.size(); i++) {
             JButton c = manoAliada.get(i);
@@ -223,11 +273,11 @@ public class InterfazPelea extends JFrame {
         }
     }
 
-    // --- GESTIÓN DINÁMICA DE LA MANO DEL RIVAL (Reverso arriba) ---
+    // --- GESTIÓN DINÁMICA DE LA MANO DEL RIVAL ---
     public void agregarCartaManoRival() {
         JButton cartaRival = new JButton("RIVAL");
-        cartaRival.setBackground(Color.decode("#F48FB1")); // Tono rosado/lila del reverso del boceto
-        cartaRival.setEnabled(false); // El jugador no puede hacer clic en las cartas del rival
+        cartaRival.setBackground(Color.decode("#F48FB1"));
+        cartaRival.setEnabled(false);
         cartaRival.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 2));
 
         manoRival.add(cartaRival);

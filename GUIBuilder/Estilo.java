@@ -4,8 +4,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class Estilo {
-    public static final Color CARTA_ALIADA = Color.decode("#F3F2C9"); // Tono crema del boceto
-    public static final Color CARTA_RIVAL = Color.decode("#CFE2F3");  // Tono azul claro del boceto
+    public static final Color CARTA_ALIADA = Color.decode("#F3F2C9");
+    public static final Color CARTA_RIVAL = Color.decode("#CFE2F3");
     public static final Color CARTA_CLICK = Color.decode("#CE840E");
     public static final Color BORDE = Color.decode("#1E1E1E");
 
@@ -41,6 +41,7 @@ public class Estilo {
             public void mousePressed(MouseEvent e) {
                 boton.setBackground(colorClick);
             }
+
             @Override
             public void mouseReleased(MouseEvent e) {
                 boton.setBackground(colorNormal);
