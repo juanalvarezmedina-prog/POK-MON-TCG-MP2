@@ -30,7 +30,7 @@ public class InterfazPelea extends JFrame {
     private JButton activo, banco1, banco2;
     private JButton activoRival, banco1Rival, banco2Rival;
 
-    private JButton btnTerminarTurno, btnAdjuntarEnergia;
+    private JButton btnTerminarTurno, btnAdjuntarEnergia, btnRendirse;
 
     // Panel desplegable del Pokémon Activo (Izquierda)
     private JPanel panelOpcionesActivo;
@@ -182,6 +182,10 @@ public class InterfazPelea extends JFrame {
     }
 
     private void inicializarBotonesFijos() {
+        btnRendirse = Estilo.crearBotonAccion("Rendirse");
+        btnRendirse.setBackground(Color.decode("#EF9A9A"));
+        btnRendirse.setBounds(960, 110, 220, 50);
+
         btnTerminarTurno = Estilo.crearBotonAccion("Terminar Turno");
         btnTerminarTurno.setBounds(960, 180, 220, 50);
 
@@ -204,8 +208,10 @@ public class InterfazPelea extends JFrame {
                     "Haz clic sobre tu Pokémon Activo o uno de tu Banca para adjuntar energía " + actual.getTipoZona() + ".");
         });
 
+        btnRendirse.addActionListener(e -> accionRendirse());
         btnTerminarTurno.addActionListener(e -> pasarTurnoConAviso());
 
+        lienzo.add(btnRendirse, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(btnTerminarTurno, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(btnAdjuntarEnergia, JLayeredPane.DEFAULT_LAYER);
     }
@@ -292,6 +298,11 @@ public class InterfazPelea extends JFrame {
 
     // --- PREPARACIÓN INICIAL ---
     private void prepararActivosIniciales() {
+        JOptionPane.showMessageDialog(this,
+                "Se lanzó la moneda: " + partida.getJugadorActual().getNombre() + " empieza la partida.",
+                "Sorteo inicial",
+                JOptionPane.INFORMATION_MESSAGE);
+
         elegirActivoInicialPara(partida.getJugadorActual());
         elegirActivoInicialPara(partida.getRival());
         partida.iniciarPrimerTurno();
@@ -458,6 +469,18 @@ public class InterfazPelea extends JFrame {
                 opciones[0]);
         if (sel >= 0) {
             ejecutarAccion(partida.retirar(sel));
+        }
+    }
+
+    private void accionRendirse() {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "¿Estás seguro de que deseas rendirte? Esto terminará la partida.",
+                "Confirmar Rendición",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            partida.rendirse();
+            actualizarPerspectiva();
         }
     }
 
