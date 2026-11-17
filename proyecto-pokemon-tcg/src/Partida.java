@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Partida {
     public static final int PUNTOS_PARA_GANAR = 3;
@@ -10,14 +11,17 @@ public class Partida {
     private int indiceJugadorActivo;
     private Jugador ganador;
     private String motivoVictoria;
+    private final Random random = new Random();
+    private int indicePrimerJugador;
 
     public Partida(Jugador j1, Jugador j2) {
         this.jugadores = new Jugador[] { j1, j2 };
         this.registro = new ArrayList<>();
         this.turno = 1;
-        this.indiceJugadorActivo = 0;
         this.ganador = null;
         this.motivoVictoria = null;
+        this.indicePrimerJugador = random.nextInt(2);
+        this.indiceJugadorActivo = indicePrimerJugador;
     }
 
     public int getTurno() {
@@ -51,6 +55,10 @@ public class Partida {
     // --- Preparación inicial ---
 
     public void prepararInicial() {
+        indicePrimerJugador = random.nextInt(2);
+        indiceJugadorActivo = indicePrimerJugador;
+        registrar("El azar decidió: " + getJugadorActual().getNombre() + " empieza la partida.");
+
         for (Jugador j : jugadores) {
             j.getMazo().barajar();
             j.hacerMulligan();
@@ -241,7 +249,7 @@ public class Partida {
         registrar(anterior.getNombre() + " terminó su turno.");
 
         indiceJugadorActivo = 1 - indiceJugadorActivo;
-        if (indiceJugadorActivo == 0) {
+        if (indiceJugadorActivo == indicePrimerJugador) {
             turno++;
         }
 
@@ -254,6 +262,18 @@ public class Partida {
         } else {
             registrar("Turno " + turno + " - " + siguiente.getNombre() + ".");
         }
+        return null;
+    }
+
+    public String rendirse() {
+        if (ganador != null) {
+            return "La partida ya terminó.";
+        }
+        Jugador actual = getJugadorActual();
+        Jugador rival = getRival();
+        ganador = rival;
+        motivoVictoria = actual.getNombre() + " se rindió.";
+        registrar(motivoVictoria);
         return null;
     }
 
