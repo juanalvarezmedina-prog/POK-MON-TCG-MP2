@@ -1,6 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +16,9 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 
 public class Gui extends JFrame {
     private final JTextField txtJugador1;
@@ -81,7 +82,7 @@ public class Gui extends JFrame {
 
     private void abrirCreadorMazo(int numJugador) {
         JDialog dialogo = new JDialog(this, "Armar Mazo - Jugador " + numJugador, true);
-        dialogo.setSize(680, 460);
+        dialogo.setSize(760, 500);
         dialogo.setLocationRelativeTo(this);
         dialogo.setLayout(new BorderLayout(10, 10));
 
@@ -106,7 +107,7 @@ public class Gui extends JFrame {
         listaDisponibles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollIzq = new JScrollPane(listaDisponibles);
         scrollIzq.setBorder(BorderFactory.createTitledBorder("Cartas disponibles"));
-        scrollIzq.setPreferredSize(new Dimension(230, 0));
+        scrollIzq.setPreferredSize(new Dimension(220, 0));
 
         // Lista derecha: Cartas elegidas en el mazo
         DefaultListModel<String> modeloElegidas = new DefaultListModel<>();
@@ -114,21 +115,32 @@ public class Gui extends JFrame {
         listaElegidas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollDer = new JScrollPane(listaElegidas);
         scrollDer.setBorder(BorderFactory.createTitledBorder("Tu mazo (20 cartas)"));
-        scrollDer.setPreferredSize(new Dimension(230, 0));
+        scrollDer.setPreferredSize(new Dimension(220, 0));
 
-        // Centro: Botones Agregar / Quitar + vista previa de carta
-        JPanel panelCentro = new JPanel(new GridLayout(4, 1, 8, 8));
-        panelCentro.setBorder(BorderFactory.createEmptyBorder(40, 5, 40, 5));
+        // Centro: Botones arriba + vista previa completa abajo
+        JPanel panelCentro = new JPanel(new BorderLayout(8, 12));
+        panelCentro.setBorder(BorderFactory.createEmptyBorder(20, 5, 10, 5));
+
+        JPanel panelBotonesCentro = new JPanel(new GridLayout(2, 1, 6, 6));
         JButton btnAgregar = new JButton("Agregar >>");
         JButton btnQuitar = new JButton("<< Quitar");
-        JLabel lblInfoCarta = new JLabel("Selecciona una carta", SwingConstants.CENTER);
+        panelBotonesCentro.add(btnAgregar);
+        panelBotonesCentro.add(btnQuitar);
+
+        JTextArea txtInfoCarta = new JTextArea("Selecciona una carta para ver sus detalles.");
+        txtInfoCarta.setEditable(false);
+        txtInfoCarta.setLineWrap(true);
+        txtInfoCarta.setWrapStyleWord(true);
+        txtInfoCarta.setOpaque(false);
+        txtInfoCarta.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        txtInfoCarta.setBorder(BorderFactory.createTitledBorder("Detalle de la carta"));
 
         listaDisponibles.addListSelectionListener(e -> {
             String sel = listaDisponibles.getSelectedValue();
             if (sel != null) {
                 Carta c = CartaFactory.crearCarta(sel);
                 if (c != null) {
-                    lblInfoCarta.setText("<html><center>" + c.obtenerInformacion().replace("\n", "<br>") + "</center></html>");
+                    txtInfoCarta.setText(c.obtenerInformacion());
                 }
             }
         });
@@ -176,9 +188,8 @@ public class Gui extends JFrame {
             }
         });
 
-        panelCentro.add(btnAgregar);
-        panelCentro.add(btnQuitar);
-        panelCentro.add(lblInfoCarta);
+        panelCentro.add(panelBotonesCentro, BorderLayout.NORTH);
+        panelCentro.add(txtInfoCarta, BorderLayout.CENTER);
 
         JPanel panelListas = new JPanel(new BorderLayout(8, 8));
         panelListas.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
@@ -283,6 +294,9 @@ public class Gui extends JFrame {
         Partida partida = new Partida(j1, j2);
         partida.prepararInicial();
 
+        // Cuando crees VentanaTablero (PR 4), reemplaza este mensaje por:
+        // new VentanaTablero(partida).setVisible(true);
+        // dispose();
         JOptionPane.showMessageDialog(this,
                 "¡Partida lista entre " + j1.getNombre() + " y " + j2.getNombre() + "!");
     }
