@@ -23,19 +23,26 @@ import javax.swing.ListSelectionModel;
 public class Gui extends JFrame {
     private final JTextField txtJugador1;
     private final JComboBox<String> cmbMazo1;
+    private final JButton btnArmar1;
+
     private final JTextField txtJugador2;
     private final JComboBox<String> cmbMazo2;
+    private final JButton btnArmar2;
+
     private final JButton btnIniciar;
 
     private Mazo mazoPersonalizado1;
     private TipoEnergia zonaPersonalizada1;
+    private List<String> nombresPersonalizados1;
+
     private Mazo mazoPersonalizado2;
     private TipoEnergia zonaPersonalizada2;
+    private List<String> nombresPersonalizados2;
 
     public Gui() {
         setTitle("Pokémon TCG - Inicio");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(480, 280);
+        setSize(500, 280);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
@@ -51,7 +58,7 @@ public class Gui extends JFrame {
         panel.add(new JLabel("Mazo Jugador 1:"));
         JPanel panelMazo1 = new JPanel(new BorderLayout(5, 0));
         cmbMazo1 = new JComboBox<>(mazos);
-        JButton btnArmar1 = new JButton("Armar mazo");
+        btnArmar1 = new JButton("Armar mazo");
         btnArmar1.addActionListener(e -> abrirCreadorMazo(1));
         panelMazo1.add(cmbMazo1, BorderLayout.CENTER);
         panelMazo1.add(btnArmar1, BorderLayout.EAST);
@@ -65,7 +72,7 @@ public class Gui extends JFrame {
         panel.add(new JLabel("Mazo Jugador 2:"));
         JPanel panelMazo2 = new JPanel(new BorderLayout(5, 0));
         cmbMazo2 = new JComboBox<>(mazos);
-        JButton btnArmar2 = new JButton("Armar mazo");
+        btnArmar2 = new JButton("Armar mazo");
         btnArmar2.addActionListener(e -> abrirCreadorMazo(2));
         panelMazo2.add(cmbMazo2, BorderLayout.CENTER);
         panelMazo2.add(btnArmar2, BorderLayout.EAST);
@@ -81,7 +88,11 @@ public class Gui extends JFrame {
     }
 
     private void abrirCreadorMazo(int numJugador) {
-        JDialog dialogo = new JDialog(this, "Armar Mazo - Jugador " + numJugador, true);
+        List<String> cartasPrevias = (numJugador == 1) ? nombresPersonalizados1 : nombresPersonalizados2;
+        TipoEnergia zonaPrevia = (numJugador == 1) ? zonaPersonalizada1 : zonaPersonalizada2;
+        String titulo = (cartasPrevias != null ? "Editar" : "Armar") + " Mazo - Jugador " + numJugador;
+
+        JDialog dialogo = new JDialog(this, titulo, true);
         dialogo.setSize(760, 500);
         dialogo.setLocationRelativeTo(this);
         dialogo.setLayout(new BorderLayout(10, 10));
@@ -91,6 +102,9 @@ public class Gui extends JFrame {
         panelNorte.add(new JLabel("Zona de Energía:"));
         TipoEnergia[] zonas = { TipoEnergia.Fuego, TipoEnergia.Agua, TipoEnergia.Electrico, TipoEnergia.Psiquico };
         JComboBox<TipoEnergia> cmbZona = new JComboBox<>(zonas);
+        if (zonaPrevia != null) {
+            cmbZona.setSelectedItem(zonaPrevia);
+        }
         panelNorte.add(cmbZona);
 
         JLabel lblEstado = new JLabel("Cartas: 0/20 | Básicos: 0/6");
@@ -109,8 +123,13 @@ public class Gui extends JFrame {
         scrollIzq.setBorder(BorderFactory.createTitledBorder("Cartas disponibles"));
         scrollIzq.setPreferredSize(new Dimension(220, 0));
 
-        // Lista derecha: Cartas elegidas en el mazo
+        // Lista derecha: Cartas elegidas en el mazo (precargadas si ya existían)
         DefaultListModel<String> modeloElegidas = new DefaultListModel<>();
+        if (cartasPrevias != null) {
+            for (String nombre : cartasPrevias) {
+                modeloElegidas.addElement(nombre);
+            }
+        }
         JList<String> listaElegidas = new JList<>(modeloElegidas);
         listaElegidas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollDer = new JScrollPane(listaElegidas);
@@ -121,11 +140,13 @@ public class Gui extends JFrame {
         JPanel panelCentro = new JPanel(new BorderLayout(8, 12));
         panelCentro.setBorder(BorderFactory.createEmptyBorder(20, 5, 10, 5));
 
-        JPanel panelBotonesCentro = new JPanel(new GridLayout(2, 1, 6, 6));
+        JPanel panelBotonesCentro = new JPanel(new GridLayout(3, 1, 6, 6));
         JButton btnAgregar = new JButton("Agregar >>");
         JButton btnQuitar = new JButton("<< Quitar");
+        JButton btnVaciar = new JButton("Vaciar todo");
         panelBotonesCentro.add(btnAgregar);
         panelBotonesCentro.add(btnQuitar);
+        panelBotonesCentro.add(btnVaciar);
 
         JTextArea txtInfoCarta = new JTextArea("Selecciona una carta para ver sus detalles.");
         txtInfoCarta.setEditable(false);
@@ -157,6 +178,9 @@ public class Gui extends JFrame {
             lblEstado.setText("Cartas: " + total + "/20 | Básicos: " + basicos + "/6");
         };
 
+        // Actualizar contador inicial por si se cargó un mazo previo
+        actualizarContador.run();
+
         btnAgregar.addActionListener(e -> {
             String seleccionada = listaDisponibles.getSelectedValue();
             if (seleccionada == null) {
@@ -186,6 +210,11 @@ public class Gui extends JFrame {
                 modeloElegidas.remove(idx);
                 actualizarContador.run();
             }
+        });
+
+        btnVaciar.addActionListener(e -> {
+            modeloElegidas.clear();
+            actualizarContador.run();
         });
 
         panelCentro.add(panelBotonesCentro, BorderLayout.NORTH);
@@ -222,10 +251,14 @@ public class Gui extends JFrame {
             if (numJugador == 1) {
                 mazoPersonalizado1 = nuevoMazo;
                 zonaPersonalizada1 = zonaElegida;
+                nombresPersonalizados1 = nombres;
+                btnArmar1.setText("Editar mazo");
                 seleccionarOpcionPersonalizada(cmbMazo1);
             } else {
                 mazoPersonalizado2 = nuevoMazo;
                 zonaPersonalizada2 = zonaElegida;
+                nombresPersonalizados2 = nombres;
+                btnArmar2.setText("Editar mazo");
                 seleccionarOpcionPersonalizada(cmbMazo2);
             }
             dialogo.dispose();
