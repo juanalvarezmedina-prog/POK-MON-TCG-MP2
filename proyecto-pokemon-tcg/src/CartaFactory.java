@@ -8,98 +8,98 @@ public class CartaFactory {
             case "pikachu":
                 PokemonBasico p = new PokemonBasico("Pikachu", TipoEnergia.Electrico, 60, 1);
                 p.agregarAtaque(new Ataque("Mordisco", TipoEnergia.Electrico, (byte) 1, (short) 20));
-                p.asignarImagenAleatoria("Pikachu.png");
+                p.asignarImagenAleatoria("Pikachu.png", "Pikachu2.png");
                 return p;
             case "charmander":
                 PokemonBasico c = new PokemonBasico("Charmander", TipoEnergia.Fuego, 60, 1);
                 c.agregarAtaque(new Ataque("Ascuas", TipoEnergia.Fuego, (byte) 1, (short) 30));
-                c.asignarImagenAleatoria(""); 
+                c.asignarImagenAleatoria("Charmander.png", "Charmander2.png");
                 return c;
             case "squirtle":
                 PokemonBasico s = new PokemonBasico("Squirtle", TipoEnergia.Agua, 60, 1);
                 s.agregarAtaque(new Ataque("Placaje", TipoEnergia.Agua, (byte) 1, (short) 20));
-                s.asignarImagenAleatoria("");
+                s.asignarImagenAleatoria("Squirtle.png", "Squirtle2.png");
                 return s;
             case "jigglypuff":
                 PokemonBasico j = new PokemonBasico("Jigglypuff", TipoEnergia.Incoloro, 70, 1);
                 j.agregarAtaque(new Ataque("Golpe", TipoEnergia.Incoloro, (byte) 1, (short) 20));
-                j.asignarImagenAleatoria("");
+                j.asignarImagenAleatoria("Jigglypuff.png", "Jigglypuff2.png");
                 return j;
             case "magikarp":
                 PokemonBasico m = new PokemonBasico("Magikarp", TipoEnergia.Agua, 30, 1);
                 m.agregarAtaque(new Ataque("Chapoteo", TipoEnergia.Agua, (byte) 1, (short) 10));
-                m.asignarImagenAleatoria("");
+                m.asignarImagenAleatoria("Magikarp.png", "Magikarp2.png");
                 return m;
             case "snorlax":
                 PokemonBasico s2 = new PokemonBasico("Snorlax", TipoEnergia.Incoloro, 150, 4);
                 s2.agregarAtaque(new Ataque("Golpe Cuerpo", TipoEnergia.Incoloro, (byte) 3, (short) 100));
-                s2.asignarImagenAleatoria("");
+                s2.asignarImagenAleatoria("Snorlax.png", "Snorlax2.png");
                 return s2;
             case "mewtwo ex":
                 PokemonEx m2 = new PokemonEx("Mewtwo EX", TipoEnergia.Psiquico, 150, 1);
                 m2.agregarAtaque(new Ataque("Ataque Psíquico", TipoEnergia.Psiquico, (byte) 2, (short) 50));
                 m2.agregarAtaque(new Ataque("Psicorrayo", TipoEnergia.Psiquico, (byte) 3, (short) 150));
-                m2.asignarImagenAleatoria("");
+                m2.asignarImagenAleatoria("Mewtwo.png", "Mewtwo2.png");
                 return m2;
             case "zapdos ex":
                 PokemonEx z = new PokemonEx("Zapdos EX", TipoEnergia.Electrico, 130, 1);
                 z.agregarAtaque(new Ataque("Picotazo", TipoEnergia.Incoloro, (byte) 1, (short) 30));
                 z.agregarAtaque(new Ataque("Tormenta Eléctrica", TipoEnergia.Electrico, (byte) 3, (short) 100));
-                z.asignarImagenAleatoria("");
+                z.asignarImagenAleatoria("Zapdos.png", "Zapdos2.png");
                 return z;
             case "moltres ex":
                 PokemonEx m3 = new PokemonEx("Moltres EX", TipoEnergia.Fuego, 130, 2);
                 m3.agregarAtaque(new Ataque("Aleteo", TipoEnergia.Incoloro, (byte) 1, (short) 30));
                 m3.agregarAtaque(new Ataque("Danza Infernal", TipoEnergia.Fuego, (byte) 3, (short) 70));
-                m3.asignarImagenAleatoria("");
+                m3.asignarImagenAleatoria("Moltres.png", "Moltres2.png");
                 return m3;
             case "articuno ex":
                 PokemonEx a = new PokemonEx("Articuno EX", TipoEnergia.Agua, 130, 2);
                 a.agregarAtaque(new Ataque("Viento Helado", TipoEnergia.Agua, (byte) 1, (short) 30));
                 a.agregarAtaque(new Ataque("Ventisca", TipoEnergia.Agua, (byte) 3, (short) 100));
-                a.asignarImagenAleatoria("");
+                a.asignarImagenAleatoria("Articuno.png", "Articuno2.png");
                 return a;
             case "raichu":
                 PokemonEvolucion r = new PokemonEvolucion("Raichu", TipoEnergia.Electrico, 100, 1,
                         Etapa.FASE1, "Pikachu");
                 r.agregarAtaque(new Ataque("Trueno", TipoEnergia.Electrico, (byte) 2, (short) 60));
-                r.asignarImagenAleatoria("");
+                r.asignarImagenAleatoria("Raichu.png", "Raichu2.png");
                 return r;
             case "charmeleon":
                 PokemonEvolucion cm = new PokemonEvolucion("Charmeleon", TipoEnergia.Fuego, 90, 2,
                         Etapa.FASE1, "Charmander");
                 cm.agregarAtaque(new Ataque("Garra Ígnea", TipoEnergia.Fuego, (byte) 2, (short) 50));
-                cm.asignarImagenAleatoria("");
+                cm.asignarImagenAleatoria("Charmeleon.png", "Charmeleon2.png");
                 return cm;
             case "charizard":
                 PokemonEvolucion cz = new PokemonEvolucion("Charizard", TipoEnergia.Fuego, 150, 2,
                         Etapa.FASE2, "Charmeleon");
                 cz.agregarAtaque(new Ataque("Giro Fuego", TipoEnergia.Fuego, (byte) 4, (short) 120));
-                cz.asignarImagenAleatoria("");
+                cz.asignarImagenAleatoria("Charizard.png", "Charizard2.png");
                 return cz;
             case "wartortle":
                 PokemonEvolucion w = new PokemonEvolucion("Wartortle", TipoEnergia.Agua, 80, 1,
                         Etapa.FASE1, "Squirtle");
                 w.agregarAtaque(new Ataque("Salpicadura", TipoEnergia.Agua, (byte) 2, (short) 40));
-                w.asignarImagenAleatoria("");
+                w.asignarImagenAleatoria("Wartortle.png", "Wartortle2.png");
                 return w;
             case "blastoise":
                 PokemonEvolucion b = new PokemonEvolucion("Blastoise", TipoEnergia.Agua, 150, 3,
                         Etapa.FASE2, "Wartortle");
                 b.agregarAtaque(new Ataque("Hidrobomba", TipoEnergia.Agua, (byte) 3, (short) 100));
-                b.asignarImagenAleatoria("");
+                b.asignarImagenAleatoria("Blastoise.png", "Blastoise2.png");
                 return b;
             case "wigglytuff":
                 PokemonEvolucion wf = new PokemonEvolucion("Wigglytuff", TipoEnergia.Incoloro, 110, 2,
                         Etapa.FASE1, "Jigglypuff");
                 wf.agregarAtaque(new Ataque("Bofetón", TipoEnergia.Incoloro, (byte) 2, (short) 50));
-                wf.asignarImagenAleatoria("");
+                wf.asignarImagenAleatoria("Wigglytuff.png", "Wigglytuff2.png");
                 return wf;
             case "gyarados":
                 PokemonEvolucion g = new PokemonEvolucion("Gyarados", TipoEnergia.Agua, 150, 4,
                         Etapa.FASE1, "Magikarp");
                 g.agregarAtaque(new Ataque("Hiperrayo", TipoEnergia.Agua, (byte) 4, (short) 100));
-                g.asignarImagenAleatoria("");
+                g.asignarImagenAleatoria("Gyarados.png", "Gyarados2.png");
                 return g;
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -123,15 +123,39 @@ public class CartaFactory {
                 return new Entrenador(
                     "Poción",
                     false,
-                    "Cura 20 PS al Pokémon Activo de tu lado del campo.",
+                    "Cura 20 PS a uno de tus Pokémon que tenga daño.",
                     new Activable() {
                         @Override
+                        public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
+                            List<PokemonEnJuego> heridos = new ArrayList<>();
+                            Campo campo = jugador.getCampo();
+                            PokemonEnJuego activo = campo.getActivo();
+                            if (activo != null && activo.getPsActuales() < activo.getCarta().getPsMaximos()) {
+                                heridos.add(activo);
+                            }
+                            for (PokemonEnJuego p : campo.getBanco()) {
+                                if (p.getPsActuales() < p.getCarta().getPsMaximos()) {
+                                    heridos.add(p);
+                                }
+                            }
+                            return heridos;
+                        }
+
+                        @Override
                         public boolean activar(Jugador jugador, Jugador rival) {
-                            PokemonEnJuego activo = jugador.getCampo().getActivo();
-                            if (activo == null) {
+                            List<PokemonEnJuego> heridos = objetivosPosibles(jugador);
+                            if (heridos.isEmpty()) {
                                 return false;
                             }
-                            activo.curar(20);
+                            return activar(jugador, rival, heridos.get(0));
+                        }
+
+                        @Override
+                        public boolean activar(Jugador jugador, Jugador rival, PokemonEnJuego objetivo) {
+                            if (objetivo == null || !objetivosPosibles(jugador).contains(objetivo)) {
+                                return false;
+                            }
+                            objetivo.curar(20);
                             return true;
                         }
                     }

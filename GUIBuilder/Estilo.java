@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+
 
 public class Estilo {
     public static final Color CARTA_ALIADA = Color.decode("#F3F2C9");
@@ -15,6 +17,51 @@ public class Estilo {
 
     public static Font fuente(float size) {
         return new Font("Lexend", Font.BOLD, (int) size);
+    }
+
+    public static ImageIcon cargarIcono(String rutaRelativa, int ancho, int alto) {
+        if (rutaRelativa == null || rutaRelativa.isBlank()) {
+            return null;
+        }
+        String nombreArchivo = new File(rutaRelativa).getName();
+        String nombreSinExt = nombreArchivo.contains(".")
+                ? nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'))
+                : nombreArchivo;
+
+        File[] carpetas = {
+            new File("media"),
+            new File("src/media"),
+            new File("proyecto-pokemon-tcg/media"),
+            new File("proyecto-pokemon-tcg/src/media")
+        };
+
+        File encontrado = null;
+        for (File carpeta : carpetas) {
+            if (carpeta.exists() && carpeta.isDirectory()) {
+                File[] archivos = carpeta.listFiles();
+                if (archivos != null) {
+                    for (File f : archivos) {
+                        String n = f.getName();
+                        String nSinExt = n.contains(".") ? n.substring(0, n.lastIndexOf('.')) : n;
+                        if (n.equalsIgnoreCase(nombreArchivo) || nSinExt.equalsIgnoreCase(nombreSinExt)) {
+                            encontrado = f;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (encontrado != null) break;
+        }
+
+        if (encontrado == null) {
+            System.out.println("[IMAGEN NO ENCONTRADA] Buscaba: " + nombreArchivo
+                    + " | Working dir: " + new File(".").getAbsolutePath());
+            return null;
+        }
+
+        Image imagen = new ImageIcon(encontrado.getAbsolutePath()).getImage();
+        Image escalada = imagen.getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+        return new ImageIcon(escalada);
     }
 
     public static JButton crearCartaTablero(String texto, boolean esAliado) {
