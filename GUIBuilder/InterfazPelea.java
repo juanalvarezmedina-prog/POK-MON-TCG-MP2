@@ -8,6 +8,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -221,7 +223,7 @@ public class InterfazPelea extends JFrame {
 
         int centroX = anchoPantalla / 2;
 
-        // Rival (Arriba) - ahora también interactivos para inspeccionar su carta
+        // Rival (Arriba)
         banco1Rival = crearBotonSlot("Banca", false);
         banco2Rival = crearBotonSlot("Banca", false);
         activoRival = crearBotonSlot("Activo", false);
@@ -236,17 +238,30 @@ public class InterfazPelea extends JFrame {
         pnlEstadoBanco2Rival = crearPanelEstado(banco2Rival, altoEtiqueta);
         pnlEstadoActivoRival = crearPanelEstado(activoRival, altoEtiqueta);
 
-        activoRival.addActionListener(e -> mostrarZoomPokemonEnJuego(partida.getRival().getCampo().getActivo(), true));
-        banco1Rival.addActionListener(e -> {
-            List<PokemonEnJuego> bancoR = partida.getRival().getCampo().getBanco();
-            if (bancoR.size() > 0) {
-                mostrarZoomPokemonEnJuego(bancoR.get(0), true);
+        activoRival.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mostrarZoomPokemonEnJuego(partida.getRival().getCampo().getActivo(), true);
             }
         });
-        banco2Rival.addActionListener(e -> {
-            List<PokemonEnJuego> bancoR = partida.getRival().getCampo().getBanco();
-            if (bancoR.size() > 1) {
-                mostrarZoomPokemonEnJuego(bancoR.get(1), true);
+
+        banco1Rival.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                List<PokemonEnJuego> bancoR = partida.getRival().getCampo().getBanco();
+                if (bancoR.size() > 0) {
+                    mostrarZoomPokemonEnJuego(bancoR.get(0), true);
+                }
+            }
+        });
+
+        banco2Rival.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                List<PokemonEnJuego> bancoR = partida.getRival().getCampo().getBanco();
+                if (bancoR.size() > 1) {
+                    mostrarZoomPokemonEnJuego(bancoR.get(1), true);
+                }
             }
         });
 
@@ -266,24 +281,38 @@ public class InterfazPelea extends JFrame {
         pnlEstadoBanco1 = crearPanelEstado(banco1, altoEtiqueta);
         pnlEstadoBanco2 = crearPanelEstado(banco2, altoEtiqueta);
 
-        activo.addActionListener(e -> {
-            PokemonEnJuego pActivo = partida.getJugadorActual().getCampo().getActivo();
-            if (pActivo == null) {
-                return;
+        activo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                PokemonEnJuego pActivo = partida.getJugadorActual().getCampo().getActivo();
+                if (pActivo == null) {
+                    return;
+                }
+                if (esperandoObjetivoEnergia) {
+                    esperandoObjetivoEnergia = false;
+                    actualizarResaltadoEnergia();
+                    ejecutarAccion(partida.adjuntarEnergia(pActivo));
+                    return;
+                }
+                panelZoomCarta.setVisible(false);
+                panelOpcionesActivo.setVisible(!panelOpcionesActivo.isVisible());
+                lienzo.moveToFront(panelOpcionesActivo);
             }
-            if (esperandoObjetivoEnergia) {
-                esperandoObjetivoEnergia = false;
-                actualizarResaltadoEnergia();
-                ejecutarAccion(partida.adjuntarEnergia(pActivo));
-                return;
-            }
-            panelZoomCarta.setVisible(false);
-            panelOpcionesActivo.setVisible(!panelOpcionesActivo.isVisible());
-            lienzo.moveToFront(panelOpcionesActivo);
         });
 
-        banco1.addActionListener(e -> manejarClicBancoAliado(0));
-        banco2.addActionListener(e -> manejarClicBancoAliado(1));
+        banco1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                manejarClicBancoAliado(0);
+            }
+        });
+
+        banco2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                manejarClicBancoAliado(1);
+            }
+        });
 
         lienzo.add(banco1Rival, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(banco2Rival, JLayeredPane.DEFAULT_LAYER);
@@ -376,7 +405,6 @@ public class InterfazPelea extends JFrame {
         lblImagenZoom.setIcon(Estilo.cargarIcono(p.getCarta().getRutaImagen(), zoomImgW - 4, zoomImgH - 4));
         txtDetalleZoom.setText(formatearDetalleEnJuego(p));
 
-        // Modo solo lectura: ocultar botón de jugar carta y centrar "Cerrar"
         btnJugarCarta.setVisible(false);
         btnCerrarZoom.setBounds((zoomW - 140) / 2, zoomH - 48, 140, 38);
 
@@ -403,26 +431,40 @@ public class InterfazPelea extends JFrame {
         btnAdjuntarEnergia.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnAdjuntarEnergia.setBounds(btnX, handY - 56, btnW, 46);
 
-        btnAdjuntarEnergia.addActionListener(e -> {
-            panelOpcionesActivo.setVisible(false);
-            panelZoomCarta.setVisible(false);
+        btnAdjuntarEnergia.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panelOpcionesActivo.setVisible(false);
+                panelZoomCarta.setVisible(false);
 
-            Jugador actual = partida.getJugadorActual();
-            if (actual.getEnergiaDisponible() == null) {
-                JOptionPane.showMessageDialog(this, "Ya usaste la energía de zona de este turno.");
-                return;
-            }
-            esperandoObjetivoEnergia = !esperandoObjetivoEnergia;
-            actualizarResaltadoEnergia();
-            if (esperandoObjetivoEnergia) {
-                btnAdjuntarEnergia.setText("Elige tu Pokémon...");
-            } else {
-                actualizarIconoEnergiaDisponible(actual);
+                Jugador actual = partida.getJugadorActual();
+                if (actual.getEnergiaDisponible() == null) {
+                    JOptionPane.showMessageDialog(InterfazPelea.this, "Ya usaste la energía de zona de este turno.");
+                    return;
+                }
+                esperandoObjetivoEnergia = !esperandoObjetivoEnergia;
+                actualizarResaltadoEnergia();
+                if (esperandoObjetivoEnergia) {
+                    btnAdjuntarEnergia.setText("Elige tu Pokémon...");
+                } else {
+                    actualizarIconoEnergiaDisponible(actual);
+                }
             }
         });
 
-        btnRendirse.addActionListener(e -> accionRendirse());
-        btnTerminarTurno.addActionListener(e -> pasarTurnoConAviso());
+        btnRendirse.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                accionRendirse();
+            }
+        });
+
+        btnTerminarTurno.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pasarTurnoConAviso();
+            }
+        });
 
         lienzo.add(btnRendirse, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(btnTerminarTurno, JLayeredPane.DEFAULT_LAYER);
@@ -470,7 +512,12 @@ public class InterfazPelea extends JFrame {
 
     private void destellarImpactoRival() {
         activoRival.setBorder(BorderFactory.createLineBorder(Color.RED, 5));
-        Timer timer = new Timer(320, e -> activoRival.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 2)));
+        Timer timer = new Timer(320, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                activoRival.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 2));
+            }
+        });
         timer.setRepeats(false);
         timer.start();
     }
@@ -494,19 +541,28 @@ public class InterfazPelea extends JFrame {
         btnRetirar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnEvolucionar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        btnAtacar.addActionListener(e -> {
-            panelOpcionesActivo.setVisible(false);
-            accionAtacar();
+        btnAtacar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panelOpcionesActivo.setVisible(false);
+                accionAtacar();
+            }
         });
 
-        btnRetirar.addActionListener(e -> {
-            panelOpcionesActivo.setVisible(false);
-            accionRetirar();
+        btnRetirar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panelOpcionesActivo.setVisible(false);
+                accionRetirar();
+            }
         });
 
-        btnEvolucionar.addActionListener(e -> {
-            panelOpcionesActivo.setVisible(false);
-            accionEvolucionarDesdeTablero();
+        btnEvolucionar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panelOpcionesActivo.setVisible(false);
+                accionEvolucionarDesdeTablero();
+            }
         });
 
         panelOpcionesActivo.add(btnAtacar);
@@ -560,15 +616,23 @@ public class InterfazPelea extends JFrame {
         btnJugarCarta = Estilo.crearBotonAccion("Jugar Carta");
         btnJugarCarta.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnJugarCarta.setBounds(12, zoomH - 48, mitadBtnW, 38);
-        btnJugarCarta.addActionListener(e -> {
-            panelZoomCarta.setVisible(false);
-            accionJugarCartaDeMano();
+        btnJugarCarta.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panelZoomCarta.setVisible(false);
+                accionJugarCartaDeMano();
+            }
         });
 
         btnCerrarZoom = Estilo.crearBotonAccion("Cerrar");
         btnCerrarZoom.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnCerrarZoom.setBounds(12 + mitadBtnW + 12, zoomH - 48, mitadBtnW, 38);
-        btnCerrarZoom.addActionListener(e -> panelZoomCarta.setVisible(false));
+        btnCerrarZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panelZoomCarta.setVisible(false);
+            }
+        });
 
         panelZoomCarta.add(lblTituloZoom);
         panelZoomCarta.add(lblImagenZoom);
@@ -931,7 +995,6 @@ public class InterfazPelea extends JFrame {
 
         panelAbajo.removeAll();
 
-        // Bloque superior: texto de PS + barra visual de vida
         JPanel bloqueVida = new JPanel(new BorderLayout(0, 1));
         bloqueVida.setOpaque(false);
 
@@ -961,7 +1024,6 @@ public class InterfazPelea extends JFrame {
 
         panelAbajo.add(bloqueVida, BorderLayout.NORTH);
 
-        // Bloque inferior: fila de mini-iconos de energía
         JPanel filaEnergias = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 1));
         filaEnergias.setOpaque(false);
 
@@ -1002,8 +1064,8 @@ public class InterfazPelea extends JFrame {
     }
 
     // --- GESTIÓN DINÁMICA DE LA MANO DEL JUGADOR ---
-    public void agregarCartaManoAliada(Carta c) {
-        JButton carta = new JButton();
+    public void agregarCartaManoAliada(final Carta c) {
+        final JButton carta = new JButton();
         carta.setMargin(new Insets(0, 0, 0, 0));
         carta.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ImageIcon icono = Estilo.cargarIcono(c.getRutaImagen(), handCardW - 4, handCardH - 4);
@@ -1037,7 +1099,6 @@ public class InterfazPelea extends JFrame {
                 lblImagenZoom.setIcon(Estilo.cargarIcono(c.getRutaImagen(), zoomImgW - 4, zoomImgH - 4));
                 txtDetalleZoom.setText(c.obtenerInformacion());
 
-                // Restaurar los dos botones de acción (Jugar + Cerrar)
                 int mitadBtnW = (zoomW - 36) / 2;
                 btnJugarCarta.setBounds(12, zoomH - 48, mitadBtnW, 38);
                 btnCerrarZoom.setBounds(12 + mitadBtnW + 12, zoomH - 48, mitadBtnW, 38);
