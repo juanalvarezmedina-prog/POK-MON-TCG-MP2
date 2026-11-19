@@ -88,9 +88,17 @@ public class Gui extends JFrame {
     }
 
     private void abrirCreadorMazo(int numJugador) {
-        List<String> cartasPrevias = (numJugador == 1) ? nombresPersonalizados1 : nombresPersonalizados2;
-        TipoEnergia zonaPrevia = (numJugador == 1) ? zonaPersonalizada1 : zonaPersonalizada2;
-        String titulo = (cartasPrevias != null ? "Editar" : "Armar") + " Mazo - Jugador " + numJugador;
+        List<String> cartasPrevias = nombresPersonalizados2;
+        TipoEnergia zonaPrevia = zonaPersonalizada2;
+        if (numJugador == 1) {
+            cartasPrevias = nombresPersonalizados1;
+            zonaPrevia = zonaPersonalizada1;
+        }
+        String accion = "Armar";
+        if (cartasPrevias != null) {
+            accion = "Editar";
+        }
+String titulo = accion + " Mazo - Jugador " + numJugador;
 
         JDialog dialogo = new JDialog(this, titulo, true);
         dialogo.setSize(760, 500);
@@ -306,13 +314,19 @@ public class Gui extends JFrame {
         String selMazo1 = (String) cmbMazo1.getSelectedItem();
         String selMazo2 = (String) cmbMazo2.getSelectedItem();
 
-        Jugador j1 = "Personalizado".equals(selMazo1) && mazoPersonalizado1 != null
-                ? new Jugador(nombre1, mazoPersonalizado1, zonaPersonalizada1)
-                : CartaFactory.crearJugador(nombre1, selMazo1);
+        Jugador j1;
+        if ("Personalizado".equals(selMazo1) && mazoPersonalizado1 != null) {
+            j1 = new Jugador(nombre1, mazoPersonalizado1, zonaPersonalizada1);
+        } else {
+            j1 = CartaFactory.crearJugador(nombre1, selMazo1);
+        }
 
-        Jugador j2 = "Personalizado".equals(selMazo2) && mazoPersonalizado2 != null
-                ? new Jugador(nombre2, mazoPersonalizado2, zonaPersonalizada2)
-                : CartaFactory.crearJugador(nombre2, selMazo2);
+        Jugador j2;
+        if ("Personalizado".equals(selMazo2) && mazoPersonalizado2 != null) {
+            j2 = new Jugador(nombre2, mazoPersonalizado2, zonaPersonalizada2);
+        } else {
+            j2 = CartaFactory.crearJugador(nombre2, selMazo2);
+        }
 
         if (!j1.getMazo().esValido()) {
             JOptionPane.showMessageDialog(this,

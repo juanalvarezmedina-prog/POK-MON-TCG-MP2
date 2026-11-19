@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Entrenador extends Carta implements Activable {
@@ -26,9 +27,12 @@ public class Entrenador extends Carta implements Activable {
     }
 
     public List<PokemonEnJuego> objetivosPosibles(Jugador jugador) {
-        return estrategia != null ? estrategia.objetivosPosibles(jugador) : List.of();
+    if (estrategia != null) {
+        return estrategia.objetivosPosibles(jugador);
     }
-
+    return new ArrayList<>();
+    }
+    
     public boolean activar(Jugador jugador, Jugador rival, PokemonEnJuego objetivo) {
         return estrategia != null && estrategia.activar(jugador, rival, objetivo);
     }

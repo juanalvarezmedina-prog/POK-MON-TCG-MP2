@@ -39,6 +39,12 @@ public abstract class Pokemon extends Carta {
     public boolean esBasico() {
         return true;
     }
+    
+    public static final int BONO_DEBILIDAD = 20;
+
+    public boolean esDebilA(Pokemon atacante) {
+    return tipo.esDebilA(atacante.getTipo());
+    }
 
     public abstract int getPuntosPremio();
 

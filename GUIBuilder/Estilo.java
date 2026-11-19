@@ -24,9 +24,10 @@ public class Estilo {
             return null;
         }
         String nombreArchivo = new File(rutaRelativa).getName();
-        String nombreSinExt = nombreArchivo.contains(".")
-                ? nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'))
-                : nombreArchivo;
+        String nombreSinExt = nombreArchivo;
+        if (nombreArchivo.contains(".")) {
+            nombreSinExt = nombreArchivo.substring(0, nombreArchivo.lastIndexOf('.'));
+        }
 
         File[] carpetas = {
             new File("media"),
@@ -42,7 +43,10 @@ public class Estilo {
                 if (archivos != null) {
                     for (File f : archivos) {
                         String n = f.getName();
-                        String nSinExt = n.contains(".") ? n.substring(0, n.lastIndexOf('.')) : n;
+                        String nSinExt = n;
+                        if (n.contains(".")) {
+                            nSinExt = n.substring(0, n.lastIndexOf('.'));
+                        }
                         if (n.equalsIgnoreCase(nombreArchivo) || nSinExt.equalsIgnoreCase(nombreSinExt)) {
                             encontrado = f;
                             break;
@@ -65,7 +69,10 @@ public class Estilo {
     }
 
     public static JButton crearCartaTablero(String texto, boolean esAliado) {
-        Color base = esAliado ? CARTA_ALIADA : CARTA_RIVAL;
+        Color base = CARTA_RIVAL;
+        if (esAliado) {
+            base = CARTA_ALIADA;
+        }
         return configurarBoton(texto, base, CARTA_CLICK, BORDE);
     }
 

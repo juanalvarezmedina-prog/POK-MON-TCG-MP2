@@ -145,7 +145,8 @@ public class Jugador {
         return null;
     }
 
-    // Devuelve null si la evolución se hizo; si no, devuelve el motivo por el que falló.
+    // Devuelve null si la evolución se hizo; si no, devuelve el motivo por el que
+    // falló.
     public String evolucionar(PokemonEvolucion carta, PokemonEnJuego objetivo, int turnoActual) {
         if (turnoActual == 1) {
             return "No puedes evolucionar en el turno 1.";
@@ -208,8 +209,8 @@ public class Jugador {
         }
 
         int dano = ataque.getDano();
-        if (defensor.getCarta().getTipo().esDebilA(atacante.getCarta().getTipo())) {
-            dano += 20;
+        if (defensor.getCarta().esDebilA(atacante.getCarta())) {
+            dano += Pokemon.BONO_DEBILIDAD;
         }
         defensor.recibirDano(dano);
         yaAtaco = true;

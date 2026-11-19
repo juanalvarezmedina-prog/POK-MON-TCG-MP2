@@ -13,9 +13,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -48,7 +46,8 @@ public class InterfazPelea extends JFrame {
     // Fondo, reverso rival, caché de mini-iconos y barras superiores
     private JLabel lblFondo;
     private ImageIcon iconoReversoRival;
-    private final Map<TipoEnergia, ImageIcon> miniIconosEnergia = new EnumMap<>(TipoEnergia.class);
+    private final List<TipoEnergia> tiposConIcono = new ArrayList<>();
+    private final List<ImageIcon> iconosEnergia = new ArrayList<>();
     private JLabel lblInfoIzquierda;
     private JLabel lblInfoDerecha;
     private JTextArea txtRegistro;
@@ -141,9 +140,19 @@ public class InterfazPelea extends JFrame {
         for (TipoEnergia tipo : TipoEnergia.values()) {
             ImageIcon mini = Estilo.cargarIcono("media/" + tipo.name() + ".png", 14, 14);
             if (mini != null) {
-                miniIconosEnergia.put(tipo, mini);
+                tiposConIcono.add(tipo);
+                iconosEnergia.add(mini);
             }
         }
+    }
+
+    private ImageIcon buscarMiniIcono(TipoEnergia tipo) {
+        for (int i = 0; i < tiposConIcono.size(); i++) {
+            if (tiposConIcono.get(i) == tipo) {
+                return iconosEnergia.get(i);
+            }
+        }
+        return null;
     }
 
     private void inicializarFondoYReverso() {
@@ -400,7 +409,10 @@ public class InterfazPelea extends JFrame {
         panelOpcionesActivo.setVisible(false);
         cartaZoomSeleccionada = null;
 
-        String sufijo = esRival ? " (Rival)" : " (Tu Banca)";
+        String sufijo = " (Tu Banca)";
+        if (esRival) {
+            sufijo = " (Rival)";
+        }
         lblTituloZoom.setText(p.getCarta().getNombre() + sufijo);
         lblImagenZoom.setIcon(Estilo.cargarIcono(p.getCarta().getRutaImagen(), zoomImgW - 4, zoomImgH - 4));
         txtDetalleZoom.setText(formatearDetalleEnJuego(p));
@@ -897,7 +909,10 @@ public class InterfazPelea extends JFrame {
                 null,
                 etiquetas.toArray(new String[0]),
                 etiquetas.get(0));
-        return (sel >= 0 && sel < propios.size()) ? propios.get(sel) : null;
+        if (sel >= 0 && sel < propios.size()) {
+            return propios.get(sel);
+        }
+        return null;
     }
 
     private void ejecutarAccion(String error) {
@@ -914,10 +929,17 @@ public class InterfazPelea extends JFrame {
 
         Jugador debeReemplazar = partida.getJugadorQueDebeReemplazar();
         if (debeReemplazar != null && partida.getGanador() == null) {
+            for (JButton b : manoAliada) {
+                b.setVisible(false);
+            }
             pedirReemplazoKO(debeReemplazar);
         }
 
-        String zonaTexto = actual.getTipoZona() + (actual.getEnergiaDisponible() != null ? " (Disponible)" : " (Usada)");
+        String estadoEnergia = " (Usada)";
+        if (actual.getEnergiaDisponible() != null) {
+            estadoEnergia = " (Disponible)";
+        }
+        String zonaTexto = actual.getTipoZona() + estadoEnergia;
         lblInfoIzquierda.setText(
                 "Turno " + partida.getTurno() + "  |  " + actual.getNombre() + "  |  Zona: " + zonaTexto);
         lblInfoDerecha.setText(
@@ -937,14 +959,30 @@ public class InterfazPelea extends JFrame {
         Campo campoRival = rival.getCampo();
         actualizarSlotPokemon(activoRival, pnlEstadoActivoRival, campoRival.getActivo(), "Activo Rival");
         List<PokemonEnJuego> bancoR = campoRival.getBanco();
-        actualizarSlotPokemon(banco1Rival, pnlEstadoBanco1Rival, bancoR.size() > 0 ? bancoR.get(0) : null, "Banca Rival");
-        actualizarSlotPokemon(banco2Rival, pnlEstadoBanco2Rival, bancoR.size() > 1 ? bancoR.get(1) : null, "Banca Rival");
+        PokemonEnJuego bancoRival1 = null;
+        PokemonEnJuego bancoRival2 = null;
+        if (bancoR.size() > 0) {
+            bancoRival1 = bancoR.get(0);
+        }
+        if (bancoR.size() > 1) {
+            bancoRival2 = bancoR.get(1);
+        }
+        actualizarSlotPokemon(banco1Rival, pnlEstadoBanco1Rival, bancoRival1, "Banca Rival");
+        actualizarSlotPokemon(banco2Rival, pnlEstadoBanco2Rival, bancoRival2, "Banca Rival");
 
         Campo campoPropio = actual.getCampo();
         actualizarSlotPokemon(activo, pnlEstadoActivo, campoPropio.getActivo(), "Activo");
         List<PokemonEnJuego> bancoP = campoPropio.getBanco();
-        actualizarSlotPokemon(banco1, pnlEstadoBanco1, bancoP.size() > 0 ? bancoP.get(0) : null, "Banca");
-        actualizarSlotPokemon(banco2, pnlEstadoBanco2, bancoP.size() > 1 ? bancoP.get(1) : null, "Banca");
+        PokemonEnJuego bancoPropio1 = null;
+        PokemonEnJuego bancoPropio2 = null;
+        if (bancoP.size() > 0) {
+            bancoPropio1 = bancoP.get(0);
+        }
+        if (bancoP.size() > 1) {
+            bancoPropio2 = bancoP.get(1);
+        }
+        actualizarSlotPokemon(banco1, pnlEstadoBanco1, bancoPropio1, "Banca");
+        actualizarSlotPokemon(banco2, pnlEstadoBanco2, bancoPropio2, "Banca");
 
         for (JButton b : manoAliada) {
             lienzo.remove(b);
@@ -1012,7 +1050,10 @@ public class InterfazPelea extends JFrame {
         barraVida.setBackground(new Color(60, 60, 60));
         barraVida.setBorderPainted(false);
 
-        double ratio = (psMax > 0) ? ((double) psAct / psMax) : 0;
+        double ratio = 0;
+        if (psMax > 0) {
+            ratio = (double) psAct / psMax;
+        }
         if (ratio > 0.5) {
             barraVida.setForeground(Color.decode("#00E676"));
         } else if (ratio > 0.25) {
@@ -1035,7 +1076,7 @@ public class InterfazPelea extends JFrame {
             filaEnergias.add(lblSin);
         } else {
             for (TipoEnergia e : energias) {
-                ImageIcon mini = miniIconosEnergia.get(e);
+                ImageIcon mini = buscarMiniIcono(e);
                 if (mini != null) {
                     JLabel lblIcono = new JLabel(mini);
                     lblIcono.setToolTipText(e.name());
@@ -1059,7 +1100,12 @@ public class InterfazPelea extends JFrame {
         StringBuilder sb = new StringBuilder();
         sb.append(p.getCarta().obtenerInformacion()).append("\n");
         sb.append("PS actuales: ").append(p.getPsActuales()).append("/").append(p.getCarta().getPsMaximos()).append("\n");
-        sb.append("Energías adjuntas: ").append(p.getEnergias().isEmpty() ? "ninguna" : p.getEnergias());
+        sb.append("Energías adjuntas: ");
+        if (p.getEnergias().isEmpty()) {
+            sb.append("ninguna");
+        } else {
+            sb.append(p.getEnergias());
+        }
         return sb.toString();
     }
 
@@ -1123,9 +1169,10 @@ public class InterfazPelea extends JFrame {
     }
 
     private void actualizarPosicionesManoAliada() {
-        int solapamiento = manoAliada.size() <= 7
-                ? (int) (handCardW * 0.92)
-                : (int) (handCardW * 0.68);
+        int solapamiento = (int) (handCardW * 0.68);
+        if (manoAliada.size() <= 7) {
+            solapamiento = (int) (handCardW * 0.92);
+        }
         int anchoTotal = (manoAliada.size() - 1) * solapamiento + handCardW;
         int inicioX = (anchoPantalla - anchoTotal) / 2;
 

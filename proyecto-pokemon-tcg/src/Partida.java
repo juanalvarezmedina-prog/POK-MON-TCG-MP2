@@ -167,8 +167,11 @@ public class Partida {
         }
         Jugador actual = getJugadorActual();
         PokemonEnJuego activoAnterior = actual.getCampo().getActivo();
-        String nombreRetirado = activoAnterior != null ? activoAnterior.getCarta().getNombre() : "";
-
+        String nombreRetirado = "";
+            if (activoAnterior != null) {
+                nombreRetirado = activoAnterior.getCarta().getNombre();
+            }
+            
         String error = actual.retirarActivo(indiceBanco);
         if (error != null) {
             return error;
@@ -213,7 +216,11 @@ public class Partida {
         Jugador rival = getRival();
         PokemonEnJuego atacante = actual.getCampo().getActivo();
         PokemonEnJuego defensor = rival.getCampo().getActivo();
-        int psAntes = defensor != null ? defensor.getPsActuales() : 0;
+        int psAntes = 0;
+            if (defensor != null) {
+                psAntes = defensor.getPsActuales();
+        }
+        
 
         String error = actual.atacar(rival, ataque);
         if (error != null) {
@@ -224,8 +231,8 @@ public class Partida {
         registrar(actual.getNombre() + " atacó: " + atacante.getCarta().getNombre() + " usó "
                 + ataque.getNombre() + " y " + defensor.getCarta().getNombre() + " pierde " + danoHecho + " PS.");
 
-        if (defensor.getCarta().getTipo().esDebilA(atacante.getCarta().getTipo())) {
-            registrar("¡Es débil a ese tipo! (+20 de daño)");
+        if (defensor.getCarta().esDebilA(atacante.getCarta())) {
+            registrar("¡Es débil a ese tipo! (+" + Pokemon.BONO_DEBILIDAD + " de daño)");
         }
         if (defensor.estaDerrotado()) {
             registrar("¡" + defensor.getCarta().getNombre() + " fue derrotado! "
