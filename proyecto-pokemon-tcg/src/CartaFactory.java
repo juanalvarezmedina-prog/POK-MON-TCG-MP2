@@ -101,10 +101,9 @@ public class CartaFactory {
                 g.agregarAtaque(new Ataque("Hiperrayo", TipoEnergia.Agua, (byte) 4, (short) 100));
                 g.asignarImagenAleatoria("Gyarados.png", "Gyarados2.png");
                 return g;
-///////////////////////////////////////////////////////////////////////////////////
 
             case "investigacion del profesor":
-                return new Entrenador(
+                Entrenador inv = new Entrenador(
                     "Investigación del Profesor",
                     true,
                     "Descarta tu mano actual y roba 2 cartas de tu mazo.",
@@ -118,9 +117,11 @@ public class CartaFactory {
                         }
                     }
                 );
+                inv.asignarImagenAleatoria("Investigación de profesor.png");
+                return inv;
 
             case "pocion":
-                return new Entrenador(
+                Entrenador poc = new Entrenador(
                     "Poción",
                     false,
                     "Cura 20 PS a uno de tus Pokémon que tenga daño.",
@@ -160,9 +161,11 @@ public class CartaFactory {
                         }
                     }
                 );
+                poc.asignarImagenAleatoria("Pocion.png");
+                return poc;
 
             case "turbo velocidad":
-                return new Entrenador(
+                Entrenador turbo = new Entrenador(
                     "Turbo Velocidad",
                     false,
                     "Reduce en 1 el costo de retirada del Pokémon Activo este turno.",
@@ -178,9 +181,11 @@ public class CartaFactory {
                         }
                     }
                 );
+                turbo.asignarImagenAleatoria("Turbo velocidad.png");
+                return turbo;
 
             case "pokeball":
-                return new Entrenador(
+                Entrenador ball = new Entrenador(
                     "Poké Ball",
                     false,
                     "Busca un Pokémon Básico en tu mazo y añádelo a tu mano.",
@@ -197,9 +202,11 @@ public class CartaFactory {
                         }
                     }
                 );
+                ball.asignarImagenAleatoria("Pokeball.png");
+                return ball;
 
             case "misty":
-                return new Entrenador(
+                Entrenador misty = new Entrenador(
                     "Misty",
                     true,
                     "Adjunta 3 Energías de Agua a un Pokémon de Agua en tu campo.",
@@ -240,13 +247,16 @@ public class CartaFactory {
                         }
                     }
                 );
-            
+                misty.asignarImagenAleatoria("Misty.png");
+                return misty;
+
             default:
                 System.out.println("Carta no reconocida: " + nombre);
                 return null;
         }
     }
-    public static  List<String> nombresDisponibles() {
+
+    public static List<String> nombresDisponibles() {
         return List.of(
                 "Pikachu",
                 "Charmander",
@@ -272,6 +282,7 @@ public class CartaFactory {
                 "Misty"
         );
     }
+
     public static Mazo crearMazo(List<String> nombres) {
         Mazo mazo = new Mazo();
         for (String nombre : nombres) {
@@ -309,7 +320,7 @@ public class CartaFactory {
             "Pocion", "Pocion", "Pokeball", "Pokeball",
             "Turbo Velocidad", "Turbo Velocidad"));
     }
-    
+
     public static Mazo mazoPsiquico() {
         return crearMazo(List.of(
             "Mewtwo EX", "Mewtwo EX",
@@ -321,7 +332,7 @@ public class CartaFactory {
             "Turbo Velocidad", "Turbo Velocidad"));
     }
 
-public static List<String> nombresMazos() {
+    public static List<String> nombresMazos() {
         return List.of("Fuego", "Agua", "Eléctrico", "Psíquico");
     }
 
