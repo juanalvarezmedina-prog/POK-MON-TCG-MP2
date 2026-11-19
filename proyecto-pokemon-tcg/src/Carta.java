@@ -4,7 +4,7 @@ public abstract class Carta {
     private static final String CARPETA_IMAGENES = "media/";
 
     private String nombre;
-    private String rutaImagen = CARPETA_IMAGENES + "default.jpeg";
+    private String rutaImagen = CARPETA_IMAGENES + "default.jpeg"; // en caso que no exista la imagen
 
     public Carta(String nombre) {
         this.nombre = nombre;
@@ -15,11 +15,10 @@ public abstract class Carta {
     }
 
     public void asignarImagenAleatoria(String... rutas) {
-        if (rutas != null && rutas.length > 0) {
-            int indice = new Random().nextInt(rutas.length);
-            if (rutas[indice] != null && !rutas[indice].isBlank()) {
-                this.rutaImagen = CARPETA_IMAGENES + rutas[indice];
-            }
+        
+        int indice = new Random().nextInt(rutas.length);
+        if (rutas[indice] != null && !rutas[indice].isBlank()) {
+            this.rutaImagen = CARPETA_IMAGENES + rutas[indice];
         }
     }
 

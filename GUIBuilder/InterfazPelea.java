@@ -1,4 +1,8 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
@@ -7,7 +11,9 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -17,9 +23,11 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
 public class InterfazPelea extends JFrame {
 
@@ -35,19 +43,24 @@ public class InterfazPelea extends JFrame {
     private int handCardH;
     private int handY;
 
-    // Fondo, reverso rival y barras superiores
+    // Fondo, reverso rival, caché de mini-iconos y barras superiores
     private JLabel lblFondo;
     private ImageIcon iconoReversoRival;
+    private final Map<TipoEnergia, ImageIcon> miniIconosEnergia = new EnumMap<>(TipoEnergia.class);
     private JLabel lblInfoIzquierda;
     private JLabel lblInfoDerecha;
     private JTextArea txtRegistro;
 
-    // Cartas del tablero y sus etiquetas externas (abajo de cada recuadro)
+    // Pilas visuales de los mazos
+    private JLabel lblMazoRival;
+    private JLabel lblMazoAliado;
+
+    // Cartas del tablero y sus paneles externos (abajo de cada recuadro)
     private JButton activo, banco1, banco2;
-    private JLabel lblActivo, lblBanco1, lblBanco2;
+    private JPanel pnlEstadoActivo, pnlEstadoBanco1, pnlEstadoBanco2;
 
     private JButton activoRival, banco1Rival, banco2Rival;
-    private JLabel lblActivoRival, lblBanco1Rival, lblBanco2Rival;
+    private JPanel pnlEstadoActivoRival, pnlEstadoBanco1Rival, pnlEstadoBanco2Rival;
 
     private JButton btnTerminarTurno, btnAdjuntarEnergia, btnRendirse;
 
@@ -55,7 +68,7 @@ public class InterfazPelea extends JFrame {
     private JPanel panelOpcionesActivo;
     private JButton btnAtacar, btnRetirar, btnEvolucionar;
 
-    // Panel de Zoom al hacer clic en una carta de la mano
+    // Panel de Zoom lateral derecho
     private JPanel panelZoomCarta;
     private JLabel lblTituloZoom;
     private JLabel lblImagenZoom;
@@ -63,6 +76,8 @@ public class InterfazPelea extends JFrame {
     private JButton btnJugarCarta, btnCerrarZoom;
     private int zoomImgW;
     private int zoomImgH;
+    private int zoomW;
+    private int zoomH;
 
     // Listas visuales de botones en mano
     private final List<JButton> manoAliada = new ArrayList<>();
@@ -92,9 +107,11 @@ public class InterfazPelea extends JFrame {
         lienzo.setBackground(Color.decode("#888888"));
         add(lienzo);
 
+        cargarMiniIconosEnergia();
         inicializarFondoYReverso();
         inicializarInfoYRegistro();
         inicializarTablero();
+        inicializarMazosVisuales();
         inicializarBotonesFijos();
         inicializarPanelActivo();
         inicializarPanelZoom();
@@ -104,8 +121,11 @@ public class InterfazPelea extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 panelOpcionesActivo.setVisible(false);
                 panelZoomCarta.setVisible(false);
-                esperandoObjetivoEnergia = false;
-                btnAdjuntarEnergia.setText("Adjuntar Energía");
+                if (esperandoObjetivoEnergia) {
+                    esperandoObjetivoEnergia = false;
+                    actualizarResaltadoEnergia();
+                    actualizarIconoEnergiaDisponible(partida.getJugadorActual());
+                }
             }
         });
 
@@ -113,6 +133,15 @@ public class InterfazPelea extends JFrame {
 
         prepararActivosIniciales();
         actualizarPerspectiva();
+    }
+
+    private void cargarMiniIconosEnergia() {
+        for (TipoEnergia tipo : TipoEnergia.values()) {
+            ImageIcon mini = Estilo.cargarIcono("media/" + tipo.name() + ".png", 14, 14);
+            if (mini != null) {
+                miniIconosEnergia.put(tipo, mini);
+            }
+        }
     }
 
     private void inicializarFondoYReverso() {
@@ -180,13 +209,11 @@ public class InterfazPelea extends JFrame {
     }
 
     private void inicializarTablero() {
-        // Mano más compacta abajo (15.5% del alto de pantalla)
         handCardH = (int) (altoPantalla * 0.155);
         handCardW = (int) (handCardH * 0.72);
         handY = altoPantalla - handCardH - 35;
 
-        // Aprovechar el espacio liberado para agrandar Activos y Banca
-        int altoEtiqueta = 30;
+        int altoEtiqueta = 44;
         int rivalBancoY = 66;
         int espacioDisponible = handY - rivalBancoY - (altoEtiqueta * 2) - 24;
         cardH = (int) (espacioDisponible / 2.32);
@@ -194,7 +221,7 @@ public class InterfazPelea extends JFrame {
 
         int centroX = anchoPantalla / 2;
 
-        // Rival (Arriba)
+        // Rival (Arriba) - ahora también interactivos para inspeccionar su carta
         banco1Rival = crearBotonSlot("Banca", false);
         banco2Rival = crearBotonSlot("Banca", false);
         activoRival = crearBotonSlot("Activo", false);
@@ -205,9 +232,23 @@ public class InterfazPelea extends JFrame {
         banco2Rival.setBounds(centroX + (int) (cardW * 0.82), rivalBancoY, cardW, cardH);
         activoRival.setBounds(centroX - (cardW / 2), rivalActivoY, cardW, cardH);
 
-        lblBanco1Rival = crearEtiquetaEstado(banco1Rival, altoEtiqueta);
-        lblBanco2Rival = crearEtiquetaEstado(banco2Rival, altoEtiqueta);
-        lblActivoRival = crearEtiquetaEstado(activoRival, altoEtiqueta);
+        pnlEstadoBanco1Rival = crearPanelEstado(banco1Rival, altoEtiqueta);
+        pnlEstadoBanco2Rival = crearPanelEstado(banco2Rival, altoEtiqueta);
+        pnlEstadoActivoRival = crearPanelEstado(activoRival, altoEtiqueta);
+
+        activoRival.addActionListener(e -> mostrarZoomPokemonEnJuego(partida.getRival().getCampo().getActivo(), true));
+        banco1Rival.addActionListener(e -> {
+            List<PokemonEnJuego> bancoR = partida.getRival().getCampo().getBanco();
+            if (bancoR.size() > 0) {
+                mostrarZoomPokemonEnJuego(bancoR.get(0), true);
+            }
+        });
+        banco2Rival.addActionListener(e -> {
+            List<PokemonEnJuego> bancoR = partida.getRival().getCampo().getBanco();
+            if (bancoR.size() > 1) {
+                mostrarZoomPokemonEnJuego(bancoR.get(1), true);
+            }
+        });
 
         // Aliado (Abajo)
         activo = crearBotonSlot("Activo", true);
@@ -221,9 +262,9 @@ public class InterfazPelea extends JFrame {
         banco1.setBounds(centroX - (int) (cardW * 1.82), aliadoBancoY, cardW, cardH);
         banco2.setBounds(centroX + (int) (cardW * 0.82), aliadoBancoY, cardW, cardH);
 
-        lblActivo = crearEtiquetaEstado(activo, altoEtiqueta);
-        lblBanco1 = crearEtiquetaEstado(banco1, altoEtiqueta);
-        lblBanco2 = crearEtiquetaEstado(banco2, altoEtiqueta);
+        pnlEstadoActivo = crearPanelEstado(activo, altoEtiqueta);
+        pnlEstadoBanco1 = crearPanelEstado(banco1, altoEtiqueta);
+        pnlEstadoBanco2 = crearPanelEstado(banco2, altoEtiqueta);
 
         activo.addActionListener(e -> {
             PokemonEnJuego pActivo = partida.getJugadorActual().getCampo().getActivo();
@@ -232,7 +273,7 @@ public class InterfazPelea extends JFrame {
             }
             if (esperandoObjetivoEnergia) {
                 esperandoObjetivoEnergia = false;
-                btnAdjuntarEnergia.setText("Adjuntar Energía");
+                actualizarResaltadoEnergia();
                 ejecutarAccion(partida.adjuntarEnergia(pActivo));
                 return;
             }
@@ -247,38 +288,65 @@ public class InterfazPelea extends JFrame {
         lienzo.add(banco1Rival, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(banco2Rival, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(activoRival, JLayeredPane.DEFAULT_LAYER);
-        lienzo.add(lblBanco1Rival, JLayeredPane.PALETTE_LAYER);
-        lienzo.add(lblBanco2Rival, JLayeredPane.PALETTE_LAYER);
-        lienzo.add(lblActivoRival, JLayeredPane.PALETTE_LAYER);
+        lienzo.add(pnlEstadoBanco1Rival, JLayeredPane.PALETTE_LAYER);
+        lienzo.add(pnlEstadoBanco2Rival, JLayeredPane.PALETTE_LAYER);
+        lienzo.add(pnlEstadoActivoRival, JLayeredPane.PALETTE_LAYER);
 
         lienzo.add(activo, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(banco1, JLayeredPane.DEFAULT_LAYER);
         lienzo.add(banco2, JLayeredPane.DEFAULT_LAYER);
-        lienzo.add(lblActivo, JLayeredPane.PALETTE_LAYER);
-        lienzo.add(lblBanco1, JLayeredPane.PALETTE_LAYER);
-        lienzo.add(lblBanco2, JLayeredPane.PALETTE_LAYER);
+        lienzo.add(pnlEstadoActivo, JLayeredPane.PALETTE_LAYER);
+        lienzo.add(pnlEstadoBanco1, JLayeredPane.PALETTE_LAYER);
+        lienzo.add(pnlEstadoBanco2, JLayeredPane.PALETTE_LAYER);
+    }
+
+    private void inicializarMazosVisuales() {
+        int mazoW = 68;
+        int mazoH = 96;
+        int mazoX = 28;
+
+        lblMazoRival = crearEtiquetaMazo(mazoX, 62 + (int) (altoPantalla * 0.26) + 14, mazoW, mazoH);
+        lblMazoAliado = crearEtiquetaMazo(mazoX, handY - 12, mazoW, mazoH);
+
+        lienzo.add(lblMazoRival, JLayeredPane.DEFAULT_LAYER);
+        lienzo.add(lblMazoAliado, JLayeredPane.DEFAULT_LAYER);
+    }
+
+    private JLabel crearEtiquetaMazo(int x, int y, int w, int h) {
+        JLabel lbl = new JLabel("", SwingConstants.CENTER);
+        lbl.setBounds(x, y, w, h);
+        lbl.setOpaque(true);
+        lbl.setBackground(new Color(30, 30, 30, 200));
+        lbl.setForeground(Color.WHITE);
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lbl.setHorizontalTextPosition(SwingConstants.CENTER);
+        lbl.setVerticalTextPosition(SwingConstants.CENTER);
+        lbl.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 2));
+        if (iconoReversoRival != null) {
+            lbl.setIcon(iconoReversoRival);
+        }
+        return lbl;
     }
 
     private JButton crearBotonSlot(String texto, boolean esAliado) {
         JButton btn = Estilo.crearCartaTablero(texto, esAliado);
         btn.setMargin(new Insets(0, 0, 0, 0));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
-    private JLabel crearEtiquetaEstado(JButton cartaBoton, int altoEtiqueta) {
-        JLabel lbl = new JLabel("", SwingConstants.CENTER);
-        lbl.setOpaque(true);
-        lbl.setBackground(new Color(28, 28, 28, 220));
-        lbl.setForeground(Color.WHITE);
-        lbl.setFont(new Font("SansSerif", Font.BOLD, 11));
-        lbl.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 1));
-        lbl.setBounds(
+    private JPanel crearPanelEstado(JButton cartaBoton, int altoPanel) {
+        JPanel panel = new JPanel(new BorderLayout(0, 1));
+        panel.setOpaque(true);
+        panel.setBackground(new Color(24, 24, 24, 235));
+        panel.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 1));
+        panel.setBounds(
                 cartaBoton.getX() - 8,
                 cartaBoton.getY() + cartaBoton.getHeight() + 2,
                 cartaBoton.getWidth() + 16,
-                altoEtiqueta);
-        lbl.setVisible(false);
-        return lbl;
+                altoPanel);
+        panel.setVisible(false);
+        return panel;
     }
 
     private void manejarClicBancoAliado(int indiceBanco) {
@@ -289,16 +357,31 @@ public class InterfazPelea extends JFrame {
         PokemonEnJuego seleccionado = banco.get(indiceBanco);
         if (esperandoObjetivoEnergia) {
             esperandoObjetivoEnergia = false;
-            btnAdjuntarEnergia.setText("Adjuntar Energía");
+            actualizarResaltadoEnergia();
             ejecutarAccion(partida.adjuntarEnergia(seleccionado));
         } else {
-            ImageIcon iconoDetalle = Estilo.cargarIcono(seleccionado.getCarta().getRutaImagen(), 150, 210);
-            JOptionPane.showMessageDialog(this,
-                    formatearDetalleEnJuego(seleccionado),
-                    seleccionado.getCarta().getNombre(),
-                    JOptionPane.INFORMATION_MESSAGE,
-                    iconoDetalle);
+            mostrarZoomPokemonEnJuego(seleccionado, false);
         }
+    }
+
+    private void mostrarZoomPokemonEnJuego(PokemonEnJuego p, boolean esRival) {
+        if (p == null) {
+            return;
+        }
+        panelOpcionesActivo.setVisible(false);
+        cartaZoomSeleccionada = null;
+
+        String sufijo = esRival ? " (Rival)" : " (Tu Banca)";
+        lblTituloZoom.setText(p.getCarta().getNombre() + sufijo);
+        lblImagenZoom.setIcon(Estilo.cargarIcono(p.getCarta().getRutaImagen(), zoomImgW - 4, zoomImgH - 4));
+        txtDetalleZoom.setText(formatearDetalleEnJuego(p));
+
+        // Modo solo lectura: ocultar botón de jugar carta y centrar "Cerrar"
+        btnJugarCarta.setVisible(false);
+        btnCerrarZoom.setBounds((zoomW - 140) / 2, zoomH - 48, 140, 38);
+
+        panelZoomCarta.setVisible(true);
+        lienzo.moveToFront(panelZoomCarta);
     }
 
     private void inicializarBotonesFijos() {
@@ -307,13 +390,17 @@ public class InterfazPelea extends JFrame {
 
         btnRendirse = Estilo.crearBotonAccion("Rendirse");
         btnRendirse.setBackground(Color.decode("#EF9A9A"));
+        btnRendirse.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnRendirse.setBounds(btnX, 72, btnW, 46);
 
         btnTerminarTurno = Estilo.crearBotonAccion("Terminar Turno");
+        btnTerminarTurno.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnTerminarTurno.setBounds(btnX, 128, btnW, 46);
 
         btnAdjuntarEnergia = Estilo.crearBotonAccion("Adjuntar Energía");
         btnAdjuntarEnergia.setBackground(Estilo.CARTA_ALIADA);
+        btnAdjuntarEnergia.setIconTextGap(10);
+        btnAdjuntarEnergia.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnAdjuntarEnergia.setBounds(btnX, handY - 56, btnW, 46);
 
         btnAdjuntarEnergia.addActionListener(e -> {
@@ -325,10 +412,13 @@ public class InterfazPelea extends JFrame {
                 JOptionPane.showMessageDialog(this, "Ya usaste la energía de zona de este turno.");
                 return;
             }
-            esperandoObjetivoEnergia = true;
-            btnAdjuntarEnergia.setText("Elige tu Pokémon...");
-            JOptionPane.showMessageDialog(this,
-                    "Haz clic sobre tu Pokémon Activo o uno de tu Banca para adjuntar energía " + actual.getTipoZona() + ".");
+            esperandoObjetivoEnergia = !esperandoObjetivoEnergia;
+            actualizarResaltadoEnergia();
+            if (esperandoObjetivoEnergia) {
+                btnAdjuntarEnergia.setText("Elige tu Pokémon...");
+            } else {
+                actualizarIconoEnergiaDisponible(actual);
+            }
         });
 
         btnRendirse.addActionListener(e -> accionRendirse());
@@ -339,6 +429,52 @@ public class InterfazPelea extends JFrame {
         lienzo.add(btnAdjuntarEnergia, JLayeredPane.DEFAULT_LAYER);
     }
 
+    private void actualizarResaltadoEnergia() {
+        Campo campo = partida.getJugadorActual().getCampo();
+        List<PokemonEnJuego> banco = campo.getBanco();
+
+        if (esperandoObjetivoEnergia) {
+            javax.swing.border.Border bordeObjetivo = BorderFactory.createLineBorder(Color.decode("#00E676"), 4);
+            if (campo.getActivo() != null) {
+                activo.setBorder(bordeObjetivo);
+            }
+            if (banco.size() > 0) {
+                banco1.setBorder(bordeObjetivo);
+            }
+            if (banco.size() > 1) {
+                banco2.setBorder(bordeObjetivo);
+            }
+        } else {
+            javax.swing.border.Border bordeNormal = BorderFactory.createLineBorder(Estilo.BORDE, 2);
+            activo.setBorder(bordeNormal);
+            banco1.setBorder(bordeNormal);
+            banco2.setBorder(bordeNormal);
+        }
+    }
+
+    private void actualizarIconoEnergiaDisponible(Jugador actual) {
+        TipoEnergia disponible = actual.getEnergiaDisponible();
+        if (disponible != null) {
+            ImageIcon icono = Estilo.cargarIcono("media/" + disponible.name() + ".png", 28, 28);
+            btnAdjuntarEnergia.setIcon(icono);
+            btnAdjuntarEnergia.setBackground(Estilo.CARTA_ALIADA);
+            if (!esperandoObjetivoEnergia) {
+                btnAdjuntarEnergia.setText("Adjuntar Energía");
+            }
+        } else {
+            btnAdjuntarEnergia.setIcon(null);
+            btnAdjuntarEnergia.setBackground(Color.LIGHT_GRAY);
+            btnAdjuntarEnergia.setText("Energía Usada");
+        }
+    }
+
+    private void destellarImpactoRival() {
+        activoRival.setBorder(BorderFactory.createLineBorder(Color.RED, 5));
+        Timer timer = new Timer(320, e -> activoRival.setBorder(BorderFactory.createLineBorder(Estilo.BORDE, 2)));
+        timer.setRepeats(false);
+        timer.start();
+    }
+
     private void inicializarPanelActivo() {
         panelOpcionesActivo = new JPanel();
         panelOpcionesActivo.setLayout(new GridLayout(3, 1, 10, 12));
@@ -347,12 +483,16 @@ public class InterfazPelea extends JFrame {
                 BorderFactory.createLineBorder(Estilo.BORDE, 2),
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
-        panelOpcionesActivo.setBounds(30, (int) (altoPantalla * 0.36), (int) (anchoPantalla * 0.20), 215);
+        panelOpcionesActivo.setBounds(112, (int) (altoPantalla * 0.36), (int) (anchoPantalla * 0.18), 210);
         panelOpcionesActivo.setVisible(false);
 
         btnAtacar = Estilo.crearBotonAccion("Atacar");
         btnRetirar = Estilo.crearBotonAccion("Retirar Pokémon");
         btnEvolucionar = Estilo.crearBotonAccion("Evolucionar");
+
+        btnAtacar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnRetirar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnEvolucionar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         btnAtacar.addActionListener(e -> {
             panelOpcionesActivo.setVisible(false);
@@ -376,15 +516,14 @@ public class InterfazPelea extends JFrame {
         lienzo.add(panelOpcionesActivo, JLayeredPane.POPUP_LAYER);
     }
 
-private void inicializarPanelZoom() {
-        // Calcular el borde derecho de la banca y dejar margen libre
+    private void inicializarPanelZoom() {
         int centroX = anchoPantalla / 2;
         int bordeDerechoBanca = centroX + (int) (cardW * 1.82);
         int margen = 18;
 
         int zoomX = bordeDerechoBanca + margen;
-        int zoomW = anchoPantalla - zoomX - 20;
-        int zoomH = Math.max(300, (int) (altoPantalla * 0.39));
+        zoomW = anchoPantalla - zoomX - 20;
+        zoomH = Math.max(300, (int) (altoPantalla * 0.39));
         int zoomY = 182;
 
         panelZoomCarta = new JPanel();
@@ -419,6 +558,7 @@ private void inicializarPanelZoom() {
 
         int mitadBtnW = (zoomW - 36) / 2;
         btnJugarCarta = Estilo.crearBotonAccion("Jugar Carta");
+        btnJugarCarta.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnJugarCarta.setBounds(12, zoomH - 48, mitadBtnW, 38);
         btnJugarCarta.addActionListener(e -> {
             panelZoomCarta.setVisible(false);
@@ -426,6 +566,7 @@ private void inicializarPanelZoom() {
         });
 
         btnCerrarZoom = Estilo.crearBotonAccion("Cerrar");
+        btnCerrarZoom.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnCerrarZoom.setBounds(12 + mitadBtnW + 12, zoomH - 48, mitadBtnW, 38);
         btnCerrarZoom.addActionListener(e -> panelZoomCarta.setVisible(false));
 
@@ -551,6 +692,8 @@ private void inicializarPanelZoom() {
                 return;
             }
 
+            destellarImpactoRival();
+
             if (partida.getGanador() != null) {
                 actualizarPerspectiva();
                 return;
@@ -569,7 +712,7 @@ private void inicializarPanelZoom() {
         panelOpcionesActivo.setVisible(false);
         panelZoomCarta.setVisible(false);
         esperandoObjetivoEnergia = false;
-        btnAdjuntarEnergia.setText("Adjuntar Energía");
+        actualizarResaltadoEnergia();
 
         String error = partida.terminarTurno();
         if (error != null) {
@@ -715,20 +858,29 @@ private void inicializarPanelZoom() {
                 "Turno " + partida.getTurno() + "  |  " + actual.getNombre() + "  |  Zona: " + zonaTexto);
         lblInfoDerecha.setText(
                 "Premios: " + actual.getPuntosPremio() + "/" + Partida.PUNTOS_PARA_GANAR
-                + " (Rival: " + rival.getPuntosPremio() + "/" + Partida.PUNTOS_PARA_GANAR + ")"
-                + "  |  Mazos: " + actual.getMazo().cantidadCartas() + " vs " + rival.getMazo().cantidadCartas());
+                + "  |  Premios Rival: " + rival.getPuntosPremio() + "/" + Partida.PUNTOS_PARA_GANAR);
+
+        int cartasRival = rival.getMazo().cantidadCartas();
+        int cartasPropias = actual.getMazo().cantidadCartas();
+        lblMazoRival.setText("<html><center><span style='background-color:rgba(0,0,0,0.65); padding:2px 6px;'>" + cartasRival + "</span></center></html>");
+        lblMazoRival.setToolTipText("Mazo de " + rival.getNombre() + ": " + cartasRival + " cartas");
+        lblMazoAliado.setText("<html><center><span style='background-color:rgba(0,0,0,0.65); padding:2px 6px;'>" + cartasPropias + "</span></center></html>");
+        lblMazoAliado.setToolTipText("Tu mazo: " + cartasPropias + " cartas");
+
+        actualizarIconoEnergiaDisponible(actual);
+        actualizarResaltadoEnergia();
 
         Campo campoRival = rival.getCampo();
-        actualizarSlotPokemon(activoRival, lblActivoRival, campoRival.getActivo(), "Activo Rival");
+        actualizarSlotPokemon(activoRival, pnlEstadoActivoRival, campoRival.getActivo(), "Activo Rival");
         List<PokemonEnJuego> bancoR = campoRival.getBanco();
-        actualizarSlotPokemon(banco1Rival, lblBanco1Rival, bancoR.size() > 0 ? bancoR.get(0) : null, "Banca Rival");
-        actualizarSlotPokemon(banco2Rival, lblBanco2Rival, bancoR.size() > 1 ? bancoR.get(1) : null, "Banca Rival");
+        actualizarSlotPokemon(banco1Rival, pnlEstadoBanco1Rival, bancoR.size() > 0 ? bancoR.get(0) : null, "Banca Rival");
+        actualizarSlotPokemon(banco2Rival, pnlEstadoBanco2Rival, bancoR.size() > 1 ? bancoR.get(1) : null, "Banca Rival");
 
         Campo campoPropio = actual.getCampo();
-        actualizarSlotPokemon(activo, lblActivo, campoPropio.getActivo(), "Activo");
+        actualizarSlotPokemon(activo, pnlEstadoActivo, campoPropio.getActivo(), "Activo");
         List<PokemonEnJuego> bancoP = campoPropio.getBanco();
-        actualizarSlotPokemon(banco1, lblBanco1, bancoP.size() > 0 ? bancoP.get(0) : null, "Banca");
-        actualizarSlotPokemon(banco2, lblBanco2, bancoP.size() > 1 ? bancoP.get(1) : null, "Banca");
+        actualizarSlotPokemon(banco1, pnlEstadoBanco1, bancoP.size() > 0 ? bancoP.get(0) : null, "Banca");
+        actualizarSlotPokemon(banco2, pnlEstadoBanco2, bancoP.size() > 1 ? bancoP.get(1) : null, "Banca");
 
         for (JButton b : manoAliada) {
             lienzo.remove(b);
@@ -760,11 +912,11 @@ private void inicializarPanelZoom() {
         }
     }
 
-    private void actualizarSlotPokemon(JButton boton, JLabel etiquetaAbajo, PokemonEnJuego p, String textoVacio) {
+    private void actualizarSlotPokemon(JButton boton, JPanel panelAbajo, PokemonEnJuego p, String textoVacio) {
         if (p == null) {
             boton.setIcon(null);
             boton.setText("<html><center>" + textoVacio + "<br><small>(Vacío)</small></center></html>");
-            etiquetaAbajo.setVisible(false);
+            panelAbajo.setVisible(false);
             return;
         }
         Pokemon carta = p.getCarta();
@@ -777,32 +929,68 @@ private void inicializarPanelZoom() {
             boton.setText(carta.getNombre());
         }
 
-        String energiasStr = formatearEnergias(p.getEnergias());
-        etiquetaAbajo.setText("<html><center>PS: " + p.getPsActuales() + "/" + carta.getPsMaximos()
-                + "<br>" + energiasStr + "</center></html>");
-        etiquetaAbajo.setVisible(true);
-    }
+        panelAbajo.removeAll();
 
-    private String formatearEnergias(List<TipoEnergia> energias) {
+        // Bloque superior: texto de PS + barra visual de vida
+        JPanel bloqueVida = new JPanel(new BorderLayout(0, 1));
+        bloqueVida.setOpaque(false);
+
+        int psAct = p.getPsActuales();
+        int psMax = carta.getPsMaximos();
+
+        JLabel lblPs = new JLabel("PS: " + psAct + "/" + psMax, SwingConstants.CENTER);
+        lblPs.setForeground(Color.WHITE);
+        lblPs.setFont(new Font("SansSerif", Font.BOLD, 10));
+        bloqueVida.add(lblPs, BorderLayout.NORTH);
+
+        JProgressBar barraVida = new JProgressBar(0, psMax);
+        barraVida.setValue(psAct);
+        barraVida.setPreferredSize(new Dimension(panelAbajo.getWidth() - 10, 6));
+        barraVida.setBackground(new Color(60, 60, 60));
+        barraVida.setBorderPainted(false);
+
+        double ratio = (psMax > 0) ? ((double) psAct / psMax) : 0;
+        if (ratio > 0.5) {
+            barraVida.setForeground(Color.decode("#00E676"));
+        } else if (ratio > 0.25) {
+            barraVida.setForeground(Color.decode("#FFD600"));
+        } else {
+            barraVida.setForeground(Color.decode("#FF1744"));
+        }
+        bloqueVida.add(barraVida, BorderLayout.SOUTH);
+
+        panelAbajo.add(bloqueVida, BorderLayout.NORTH);
+
+        // Bloque inferior: fila de mini-iconos de energía
+        JPanel filaEnergias = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 1));
+        filaEnergias.setOpaque(false);
+
+        List<TipoEnergia> energias = p.getEnergias();
         if (energias.isEmpty()) {
-            return "Sin energías";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (TipoEnergia tipo : TipoEnergia.values()) {
-            int cantidad = 0;
+            JLabel lblSin = new JLabel("Sin energías");
+            lblSin.setForeground(Color.LIGHT_GRAY);
+            lblSin.setFont(new Font("SansSerif", Font.PLAIN, 9));
+            filaEnergias.add(lblSin);
+        } else {
             for (TipoEnergia e : energias) {
-                if (e == tipo) {
-                    cantidad++;
+                ImageIcon mini = miniIconosEnergia.get(e);
+                if (mini != null) {
+                    JLabel lblIcono = new JLabel(mini);
+                    lblIcono.setToolTipText(e.name());
+                    filaEnergias.add(lblIcono);
+                } else {
+                    JLabel lblTxt = new JLabel(e.name().substring(0, 1));
+                    lblTxt.setForeground(Color.YELLOW);
+                    lblTxt.setFont(new Font("SansSerif", Font.BOLD, 10));
+                    filaEnergias.add(lblTxt);
                 }
-            }
-            if (cantidad > 0) {
-                if (sb.length() > 0) {
-                    sb.append(" | ");
-                }
-                sb.append(tipo.name()).append(": ").append(cantidad);
             }
         }
-        return sb.toString();
+
+        panelAbajo.add(filaEnergias, BorderLayout.CENTER);
+        panelAbajo.revalidate();
+        panelAbajo.repaint();
+        panelAbajo.setVisible(true);
     }
 
     private String formatearDetalleEnJuego(PokemonEnJuego p) {
@@ -817,6 +1005,7 @@ private void inicializarPanelZoom() {
     public void agregarCartaManoAliada(Carta c) {
         JButton carta = new JButton();
         carta.setMargin(new Insets(0, 0, 0, 0));
+        carta.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ImageIcon icono = Estilo.cargarIcono(c.getRutaImagen(), handCardW - 4, handCardH - 4);
         if (icono != null) {
             carta.setIcon(icono);
@@ -847,6 +1036,12 @@ private void inicializarPanelZoom() {
                 lblTituloZoom.setText(c.getNombre());
                 lblImagenZoom.setIcon(Estilo.cargarIcono(c.getRutaImagen(), zoomImgW - 4, zoomImgH - 4));
                 txtDetalleZoom.setText(c.obtenerInformacion());
+
+                // Restaurar los dos botones de acción (Jugar + Cerrar)
+                int mitadBtnW = (zoomW - 36) / 2;
+                btnJugarCarta.setBounds(12, zoomH - 48, mitadBtnW, 38);
+                btnCerrarZoom.setBounds(12 + mitadBtnW + 12, zoomH - 48, mitadBtnW, 38);
+                btnJugarCarta.setVisible(true);
 
                 if (c instanceof Pokemon p && p.esBasico()) {
                     btnJugarCarta.setText("Colocar en Banca");

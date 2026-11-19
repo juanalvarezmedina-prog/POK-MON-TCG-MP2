@@ -31,12 +31,12 @@ public class PokemonEnJuego {
         return new ArrayList<>(energias);
     }
 
-    // NUEVO
+    // NUEVO (ya no es nuevo XD)
     public int getTurnoEntrada() {
         return turnoEntrada;
     }
 
-    // NUEVO
+    // NUEVO (ya no es nuevo XD)
     public int getUltimoTurnoEvolucion() {
         return ultimoTurnoEvolucion;
     }

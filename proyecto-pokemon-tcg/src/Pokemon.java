@@ -44,7 +44,7 @@ public abstract class Pokemon extends Carta {
 
     @Override
     public String obtenerInformacion() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();  // pendiente, esto es un metodo que convierte un objeto de tipo string en algo mutable.
         sb.append("Nombre: ").append(getNombre()).append("\n");
         sb.append("Tipo: ").append(getTipo()).append("\n");
         sb.append("PS Máximos: ").append(getPsMaximos()).append("\n");

@@ -44,14 +44,14 @@ public class Mazo {
         return null;
     }
 
-    // Mulligan: la mano vuelve al mazo (después se baraja)
+    // Mulligan: la mano vuelve al mazo (después se baraja) juantails: egh, tanto complique para decir si un mazo no es valido
 
     public void devolverCartas(List<Carta> cartas) {
         mazo.addAll(cartas);
     }
 
     public boolean esValido() {
-        if (mazo.size() != 20) {
+        if (mazo.size() != 20) { //el mazo debe de contener 20 cartas
             return false;
         }
 
@@ -63,14 +63,14 @@ public class Mazo {
                     copias++;
                 }
             }
-            if (copias > 2) {
+            if (copias > 2) { //solo pueden haber 2 copias de la misma carta en el mazo
                 return false;
             }
             if (mazo.get(i) instanceof Pokemon && ((Pokemon) mazo.get(i)).esBasico()) {
                 basicos++;
             }
         }
-        return basicos >= 6;
+        return basicos >= 6;  //retornar true si hay al menos 6 pokemones basicos en el mazo
     }
 
     public boolean estaVacio() {
